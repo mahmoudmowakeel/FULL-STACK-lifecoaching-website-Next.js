@@ -19,9 +19,9 @@ interface DateTimePickerProps<T extends FormTypes> {
   formData: T;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
   type: string;
-  
+
   // Correct union type for selectedDate
-  selectedDate: Date | undefined; 
+  selectedDate: Date | undefined;
   // setSelectedDate should update only the selectedDate
   setSelectedDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
 
@@ -30,7 +30,6 @@ interface DateTimePickerProps<T extends FormTypes> {
   setSelectedTime: React.Dispatch<React.SetStateAction<string>>;
 }
 
-
 export default function DateTimePicker<T extends FormTypes>({
   formData,
   setFormData,
@@ -38,7 +37,7 @@ export default function DateTimePicker<T extends FormTypes>({
   selectedDate,
   selectedTime,
   setSelectedDate,
-  setSelectedTime
+  setSelectedTime,
 }: DateTimePickerProps<T>) {
   // const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   // const [selectedTime, setSelectedTime] = useState<string>("");
@@ -222,8 +221,11 @@ export default function DateTimePicker<T extends FormTypes>({
                   const convertedTime = time;
 
                   // console.log(convertedTime)
+                  // const selectedDateStr = selectedDate
+                  //   ? selectedDate.toISOString().split("T")[0]
+                  //   : "";
                   const selectedDateStr = selectedDate
-                    ? selectedDate.toISOString().split("T")[0]
+                    ? selectedDate.toLocaleDateString("en-CA") // stays local, no UTC conversion
                     : "";
                   // console.log("heeeeree" + selectedDate)
                   // console.log(JSON.stringify(calendarData))

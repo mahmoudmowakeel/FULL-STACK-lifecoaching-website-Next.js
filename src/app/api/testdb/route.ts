@@ -14,8 +14,7 @@ export async function POST() {
 
     // ✅ Ensure table exists
     const date = await connection.query(`
-INSERT INTO admins (email)
-VALUES ('elwakel030@gmail.com');
+TRUNCATE TABLE reservation_calendar;
 
     `);
 

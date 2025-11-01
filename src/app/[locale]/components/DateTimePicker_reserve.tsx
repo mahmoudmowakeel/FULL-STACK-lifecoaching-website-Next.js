@@ -191,8 +191,11 @@ export default function DateTimePickerReserve<T extends FormTypes>({
                   const convertedTime = time;
 
                   // console.log(convertedTime)
+                  // const selectedDateStr = selectedDate
+                  //   ? selectedDate.toISOString().split("T")[0]
+                  //   : "";
                   const selectedDateStr = selectedDate
-                    ? selectedDate.toISOString().split("T")[0]
+                    ? selectedDate.toLocaleDateString("en-CA") // stays local, no UTC conversion
                     : "";
                   // console.log("heeeeree" + selectedDate)
                   // console.log(JSON.stringify(calendarData))
