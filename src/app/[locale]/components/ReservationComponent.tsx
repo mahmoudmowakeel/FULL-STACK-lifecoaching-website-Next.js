@@ -595,7 +595,7 @@ export default function ReservationButton({ text }: { text: string }) {
               />
               <button
                 type="submit"
-                className="absolute left-[4.2rem] sm:left-[3.5rem] md:left-[4rem] top-2 sm:top-1 text-[#214E78] text-[10px] sm:text-xs bg-[#A4D3DD] py-1 px-2 sm:py-2 sm:px-3 rounded-lg cursor-pointer"
+                className="absolute left-[6rem] sm:left-[3.5rem] md:left-[4rem] top-2 sm:top-1 text-[#214E78] text-[10px] sm:text-xs bg-[#A4D3DD] py-1 px-2 sm:py-2 sm:px-3 rounded-lg cursor-pointer"
                 onClick={handelVerfication}
               >
                 {reservationT("verifing")}
