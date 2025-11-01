@@ -90,11 +90,18 @@ export default function DateTimePickerReserve<T extends FormTypes>({
     const combinedDateTime = new Date(selectedDate);
     combinedDateTime.setHours(adjustedHours, minutes, 0, 0);
 
+    // setFormData(
+    //   (prev) =>
+    //     ({
+    //       ...(prev as unknown as object),
+    //       date_time: combinedDateTime.toISOString(),
+    //     } as T)
+    // );
     setFormData(
       (prev) =>
         ({
           ...(prev as unknown as object),
-          date_time: combinedDateTime.toISOString(),
+          date_time: combinedDateTime.toLocaleString("sv-SE").replace(" ", "T"),
         } as T)
     );
   }, [selectedDate, selectedTime, setFormData]);
@@ -194,14 +201,25 @@ export default function DateTimePickerReserve<T extends FormTypes>({
                   // const selectedDateStr = selectedDate
                   //   ? selectedDate.toISOString().split("T")[0]
                   //   : "";
-                  const selectedDateStr = selectedDate
-                    ? selectedDate.toLocaleDateString("en-CA") // stays local, no UTC conversion
-                    : "";
-                  // console.log("heeeeree" + selectedDate)
+                  // const selectedDateStr = selectedDate
+                  //   ? selectedDate.toLocaleDateString("en-CA") // stays local, no UTC conversion
+                  //   : "";
+                  console.log("heeeeree" + selectedDate);
                   // console.log(JSON.stringify(calendarData))
+                  // const slot = calendarData.find(
+                  //   (s) =>
+                  //     s.date.split("T")[0] === selectedDateStr &&
+                  //     s.time_slot.trim() === convertedTime.trim()
+                  // );
+
+                  const selectedDateStr = selectedDate
+                    ? selectedDate.toLocaleDateString("en-CA")
+                    : "";
+
                   const slot = calendarData.find(
                     (s) =>
-                      s.date.split("T")[0] === selectedDateStr &&
+                      new Date(s.date).toLocaleDateString("en-CA") ===
+                        selectedDateStr &&
                       s.time_slot.trim() === convertedTime.trim()
                   );
 
