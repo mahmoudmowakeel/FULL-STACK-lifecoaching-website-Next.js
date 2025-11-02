@@ -106,8 +106,9 @@ function TableContentRow({
         if (hours === 0 || hours === 12) displayHours = 12;
         else displayHours = hours % 12;
 
+        const formattedHours = displayHours.toString().padStart(2, "0");
         const formattedMinutes = minutes.toString().padStart(2, "0");
-        return `${displayHours}:${formattedMinutes} ${period}`;
+        return `${formattedHours}:${formattedMinutes} ${period}`;
       }
 
       function add15Minutes(time: string) {
