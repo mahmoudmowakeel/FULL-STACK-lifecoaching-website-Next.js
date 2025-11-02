@@ -205,6 +205,14 @@ export default function ReservationButton({ text }: { text: string }) {
       }
 
       console.log("✅ Meeting created:", meetingData);
+      function formatLocalDateTime(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day}T${hours}:${minutes}:00`;
+      }
 
       // 3️⃣ Send email with meeting details
       const emailResponse = await fetch("/api/send-meeting-emails", {
@@ -214,8 +222,8 @@ export default function ReservationButton({ text }: { text: string }) {
           customerName: formData.email || "العميل",
           customerEmail: formData.email,
           meetingDetails: {
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
+            startTime: formatLocalDateTime(startTime),
+            endTime: formatLocalDateTime(endTime),
             summary: formData.type,
             meetLink: meetingData.hangoutLink,
             eventLink: meetingData.eventLink,

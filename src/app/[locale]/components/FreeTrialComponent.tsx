@@ -151,6 +151,14 @@ export default function FreeTrialButton({ text }: { text: string }) {
         console.log("✅ Meeting created:", meetingData);
 
         // Send email with meeting details
+        function formatLocalDateTime(date: Date): string {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          const hours = String(date.getHours()).padStart(2, "0");
+          const minutes = String(date.getMinutes()).padStart(2, "0");
+          return `${year}-${month}-${day}T${hours}:${minutes}:00`;
+        }
         const emailResponse = await fetch("/api/send_meeting_freeTrial", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -158,8 +166,8 @@ export default function FreeTrialButton({ text }: { text: string }) {
             customerName: formData.name || "العميل",
             customerEmail: formData.email,
             meetingDetails: {
-              startTime: startTime.toISOString(),
-              endTime: endTime.toISOString(),
+              startTime: formatLocalDateTime(startTime),
+              endTime: formatLocalDateTime(endTime),
               summary: "تجربة مجانيه",
               meetLink: meetingData.hangoutLink,
               eventLink: meetingData.eventLink,
@@ -410,8 +418,6 @@ export default function FreeTrialButton({ text }: { text: string }) {
               </label>
               {/* ✅ Phone with country code dropdown */}
               <div className="w-full sm:w-[70%] flex items-center gap-2 relative">
-
-
                 <input
                   id="phone"
                   name="phone"
@@ -429,7 +435,7 @@ export default function FreeTrialButton({ text }: { text: string }) {
                   }
                   className="w-[60%] sm:w-[70%] bg-[#214E78] text-white rounded-md px-3 py-2 sm:py-3 focus:outline-none placeholder:text-[#a4d3dd9d] placeholder:text-sm text-sm text-center font-medium"
                 />
-                                <div className="relative w-[40%] sm:w-[30%]">
+                <div className="relative w-[40%] sm:w-[30%]">
                   <button
                     type="button"
                     onClick={() => setDropdownOpen((prev) => !prev)}
