@@ -62,20 +62,21 @@ export async function POST(req: Request) {
 
         // 🧹 Also clear duplicates before each insert
         for (const slot of slots) {
-            // Extract clean date (it's already in correct format "2025-11-02")
-            const dateOnly = slot.date; // "2025-11-02"
+            const dateOnly =
+                slot.date.includes("T") || slot.date.includes(" ")
+                    ? slot.date
+                    : `${slot.date} 00:00:00`;
 
             // ❌ Delete any old record with same date + time_slot
             await conn.execute(
-                `DELETE FROM reservation_calendar 
-     WHERE DATE(date) = ? AND time_slot = ?`,
+                `DELETE FROM reservation_calendar WHERE DATE(date) = DATE(?) AND time_slot = ?`,
                 [dateOnly, slot.time_slot]
             );
 
             // ✅ Insert new slot
             await conn.execute(
                 `INSERT INTO reservation_calendar (date, time_slot, status, created_at)
-     VALUES (?, ?, ?, NOW())`,
+         VALUES (?, ?, ?, NOW())`,
                 [dateOnly, slot.time_slot, slot.status]
             );
         }

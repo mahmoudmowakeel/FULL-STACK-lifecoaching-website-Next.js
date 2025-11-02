@@ -14,7 +14,7 @@ export async function POST() {
 
     // ✅ Ensure table exists
     const date = await connection.query(`
-TRUNCATE TABLE free_trials;
+TRUNCATE TABLE update_reservation_calendar;
 
     `);
 
