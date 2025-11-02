@@ -113,7 +113,7 @@ function TableContentRow({
       function add15Minutes(time: string) {
         const [hours, minutes] = time.split(":").map(Number);
         let newHours = hours;
-        let newMinutes = minutes + 30;
+        let newMinutes = minutes + 90;
 
         if (newMinutes >= 60) {
           newHours += Math.floor(newMinutes / 60);
