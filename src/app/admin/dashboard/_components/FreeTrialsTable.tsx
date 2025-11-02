@@ -90,15 +90,16 @@ function TableContentRow({
       // Convert to Arabic time + 15 minutes window
       function convertToArabicFormat(time: string) {
         const [hours, minutes] = time.split(":").map(Number);
-        let period = "ص"; // AM
+        let period = "ص";
         let displayHours = hours;
 
         if (hours >= 12) period = "م";
         if (hours === 0 || hours === 12) displayHours = 12;
         else displayHours = hours % 12;
 
+        const formattedHours = displayHours.toString().padStart(2, "0");
         const formattedMinutes = minutes.toString().padStart(2, "0");
-        return `${displayHours}:${formattedMinutes} ${period}`;
+        return `${formattedHours}:${formattedMinutes} ${period}`;
       }
 
       function add15Minutes(time: string) {
@@ -167,12 +168,13 @@ function TableContentRow({
     if (formData.date_time) {
       const isoString = formData.date_time;
       const date = new Date(isoString);
-      const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
-        .getHours()
-        .toString()
-        .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+      // const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+      //   .toString()
+      //   .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
+      //   .getHours()
+      //   .toString()
+      //   .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+      const formattedDate = date.toISOString().slice(0, 16).replace("T", " ");
 
       setFormatted(formattedDate);
     }
@@ -287,11 +289,9 @@ function TableContentRow({
             )}
           </div>
         </td>
-      ): 
-      <td>
-        
-      </td>
-      }
+      ) : (
+        <td></td>
+      )}
     </tr>
   );
 }
