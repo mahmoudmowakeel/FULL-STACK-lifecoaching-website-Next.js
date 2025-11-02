@@ -57,26 +57,17 @@ function TableContentRow({
   const [formData, setFormData] = useState<Reservation>(data);
   const [formatted, setFormatted] = useState("");
 
-  /* ✅ Format the date correctly in the local timezone */
   useEffect(() => {
     if (formData.date_time) {
-      try {
-        const formattedDate = new Date(formData.date_time).toLocaleString(
-          "en-GB",
-          {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }
-        );
-        // remove comma for cleaner display
-        setFormatted(formattedDate.replace(",", ""));
-      } catch (err) {
-        console.error("Error formatting date:", err);
-      }
+      const date = new Date(formData.date_time);
+      // const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+      //   .toString()
+      //   .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
+      //   .getHours()
+      //   .toString()
+      //   .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+      const formattedDate = date.toISOString().slice(0, 16).replace("T", " ");
+      setFormatted(formattedDate);
     }
   }, [formData.date_time]);
 
@@ -85,6 +76,19 @@ function TableContentRow({
     try {
       setIsSaving(true);
 
+      const updatedData = {
+        ...formData,
+        date_time: formatted, // store as plain string
+      };
+
+      // 1️⃣ Update reservation main record
+      const res = await fetch("/api/update-reservation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+
+      // 2️⃣ Handle calendar slot time formatting
       const [date, time] = formatted.split(" ");
       if (!date || !time) {
         alert("❌ Invalid date/time format");
@@ -92,30 +96,7 @@ function TableContentRow({
         return;
       }
 
-      // ✅ Convert local time to UTC ISO before saving
-      const localDate = new Date(`${date}T${time}:00`);
-      const utcDate = new Date(
-        localDate.getTime() - localDate.getTimezoneOffset() * 60000
-      );
-      const utcISOString = utcDate.toISOString();
-
-      const updatedData = {
-        ...formData,
-        date_time: utcISOString,
-      };
-
-      // 1️⃣ Update reservation record
-      const res = await fetch("/api/update-reservation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
-      });
-
-      // 2️⃣ Handle calendar update (same UTC-safe logic)
-      const [y, m, d] = date.split("-");
-      const dateOnly = `${y}-${m}-${d}`;
-      const timeOnly = time;
-
+      // Time conversion helpers
       function convertToArabicFormat(time: string) {
         const [hours, minutes] = time.split(":").map(Number);
         let period = "ص";
@@ -129,7 +110,7 @@ function TableContentRow({
         return `${displayHours}:${formattedMinutes} ${period}`;
       }
 
-      function add30Minutes(time: string) {
+      function add15Minutes(time: string) {
         const [hours, minutes] = time.split(":").map(Number);
         let newHours = hours;
         let newMinutes = minutes + 30;
@@ -143,16 +124,26 @@ function TableContentRow({
         return `${newHours}:${newMinutes.toString().padStart(2, "0")}`;
       }
 
-      const slotRange = `${convertToArabicFormat(
-        timeOnly
-      )} - ${convertToArabicFormat(add30Minutes(timeOnly))}`;
+      function convertTimeWithPlus15(time: string) {
+        const originalTime = convertToArabicFormat(time);
+        const plus15Time = convertToArabicFormat(add15Minutes(time));
+        return `${originalTime} - ${plus15Time}`;
+      }
 
+      const selectedTime = convertTimeWithPlus15(time);
+      const readySlot = [
+        {
+          date,
+          time_slot: selectedTime,
+          status: "booked",
+        },
+      ];
+
+      // 3️⃣ Update reservation calendar
       const calendarRes = await fetch("/api/update_reservation_calendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slots: [{ date: dateOnly, time_slot: slotRange, status: "booked" }],
-        }),
+        body: JSON.stringify({ slots: readySlot }),
       });
 
       const result = await res.json();
@@ -266,7 +257,6 @@ function TableContentRow({
           تحميل الفاتورة
         </a>
       </td>
-
       {status == "completed" || status == "canceled" ? (
         <td></td>
       ) : (
