@@ -489,12 +489,18 @@ export default function ReservationButton({ text }: { text: string }) {
       <Modal isOpen={open} onClose={handleCloseModal}>
         <button
           onClick={handleCloseModal}
-          className="absolute top-3 left-3 text-[#214E78] font-bold hover:text-gray-700"
+          className={`absolute top-3 ${
+            locale == "ar" ? "left-3" : "right-3"
+          }  text-[#214E78] font-bold hover:text-gray-700`}
           disabled={paymentStatus === "processing"}
         >
           <X className="w-5 h-5" />
         </button>
-        <h2 className="ttext-sm sm:text-lg  font-semibold mb-4 text-[#214E78] text-right">
+        <h2
+          className={`text-sm sm:text-lg  font-semibold mb-4 text-[#214E78] ${
+            locale == "ar" ? "text-right" : "text-left"
+          } `}
+        >
           {reservationT("title")}
         </h2>
 

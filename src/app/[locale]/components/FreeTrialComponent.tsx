@@ -398,7 +398,9 @@ export default function FreeTrialButton({ text }: { text: string }) {
           <form className="text-[#214E78] font-bold flex flex-col mt-8 sm:mt-12 justify-between items-center h-fit gap-4 sm:gap-7 text-center w-full ">
             <div className="w-full max-w-xs sm:max-w-none sm:w-[85%] flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between items-center">
               <label
-                className={`w-full sm:w-auto text-right mb-1 sm:mb-0 text-xs sm:text-sm`}
+                className={`w-full sm:w-auto ${
+                  locale == "ar" ? "text-right" : "text-left"
+                }  mb-1 sm:mb-0 text-xs sm:text-sm`}
               >
                 {freeTrialT("name")}
               </label>
@@ -413,7 +415,11 @@ export default function FreeTrialButton({ text }: { text: string }) {
             </div>
 
             <div className="w-full max-w-xs sm:max-w-none sm:w-[85%] flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between items-center">
-              <label className="w-full sm:w-auto text-right mb-1 sm:mb-0 text-xs sm:text-sm">
+              <label
+                className={`w-full sm:w-auto ${
+                  locale == "ar" ? "text-right" : "text-left"
+                }  mb-1 sm:mb-0 text-xs sm:text-sm`}
+              >
                 {freeTrialT("phone")}
               </label>
               {/* ✅ Phone with country code dropdown */}
@@ -491,7 +497,7 @@ export default function FreeTrialButton({ text }: { text: string }) {
             </div>
 
             <div className="w-full max-w-xs sm:max-w-none sm:w-[85%] flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between items-center">
-              <label className="w-full sm:w-auto text-right mb-1 sm:mb-0 text-xs sm:text-sm">
+              <label className={`w-full sm:w-auto ${locale == "ar" ? 'text-right' : "text-left" }  mb-1 sm:mb-0 text-xs sm:text-sm`}>
                 {freeTrialT("email")}
               </label>
               <input
@@ -505,7 +511,7 @@ export default function FreeTrialButton({ text }: { text: string }) {
             </div>
 
             <div className="w-full max-w-xs sm:max-w-none sm:w-[85%] flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between items-center relative">
-              <label className="w-full sm:w-auto text-right mb-1 sm:mb-0 text-xs sm:text-sm">
+              <label className={`w-full sm:w-auto ${locale == "ar" ? 'text-right' : "text-left" }  mb-1 sm:mb-0 text-xs sm:text-sm`}>
                 {freeTrialT("verify_code")}
               </label>
               <div className="w-full sm:w-[70%] relative">
