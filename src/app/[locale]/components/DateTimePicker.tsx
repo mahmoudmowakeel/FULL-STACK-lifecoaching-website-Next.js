@@ -39,8 +39,6 @@ export default function DateTimePicker<T extends FormTypes>({
   setSelectedDate,
   setSelectedTime,
 }: DateTimePickerProps<T>) {
-  // const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  // const [selectedTime, setSelectedTime] = useState<string>("");
   const [calendarData, setCalendarData] = useState<CalendarSlot[]>([]);
   const [availableDates, setAvailableDates] = useState<Set<string>>(new Set());
 
@@ -91,13 +89,6 @@ export default function DateTimePicker<T extends FormTypes>({
     const combinedDateTime = new Date(selectedDate);
     combinedDateTime.setHours(adjustedHours, minutes, 0, 0);
 
-    // setFormData(
-    //   (prev) =>
-    //     ({
-    //       ...(prev as unknown as object),
-    //       date_time: combinedDateTime.toISOString(),
-    //     } as T)
-    // );
     setFormData(
       (prev) =>
         ({
@@ -247,7 +238,7 @@ export default function DateTimePicker<T extends FormTypes>({
                   return (
                     <label
                       key={time}
-                      className={`relative flex justify-center items-center w-[85%] mx-auto py-1 rounded-lg cursor-pointer transition-all text-[0.5em] md:text-[0.4em] font-semibold 
+                      className={`relative flex justify-center items-center w-[85%] mx-auto py-1 rounded-lg cursor-pointer transition-all text-[0.5em] md:text-[0.8em] font-semibold 
         ${
           isBooked
             ? "bg-gray-400 cursor-not-allowed opacity-60"

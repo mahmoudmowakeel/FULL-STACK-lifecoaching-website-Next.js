@@ -13,7 +13,7 @@ export default function ContentContainer({
   return (
     <div
       style={{ backgroundColor: color }}
-      className={`mb-5 mx-6 rounded-xl h-[82dvh] overflow-hidden relative`}
+      className={`mb-5 mx-6 rounded-xl h-[82dvh] overflow-scroll relative`}
     >
       <section className="mx-6 px-6 py-4 text-xl font-bold  text-white"> 
         <h1>{title}</h1>

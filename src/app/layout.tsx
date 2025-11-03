@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "استفهام شركة تهدف إلى تحسين وتعزيز جودة حياة الفرد من خلال الاستماع الهادف والبناء والتفاعل المحدود في لحظات مختارة تثري التجربة، دون تقديم أي نوع من الاستشارات الطبية أو النفسية أو القانونية أو المالية. هذا النشاط لا يُمارس في مقر رسمي، بل يُقدم إلكترونياً أو في مكان عام مختار يتوافق مع طبيعة النشاط.",
   icons: {
-    icon: "https://www.istifhamcompany.com/Images/logo-ar.jpg"
+    icon: "Images/logo-ar.jpg"
   },
   openGraph: {
     title: "شركة استفهام - Istifham Company",
