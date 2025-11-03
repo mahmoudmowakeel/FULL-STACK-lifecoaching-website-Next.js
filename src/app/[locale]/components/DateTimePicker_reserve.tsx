@@ -233,7 +233,7 @@ export default function DateTimePickerReserve<T extends FormTypes>({
                   return (
                     <label
                       key={time}
-                      className={`relative flex justify-center items-center w-full py-1 rounded-lg cursor-pointer transition-all text-[0.5em] font-semibold 
+                      className={`relative flex justify-center items-center w-full py-1 rounded-lg cursor-pointer transition-all text-[0.6em] md:text-[0.5em] font-semibold 
         ${
           isBooked
             ? "bg-gray-400 cursor-not-allowed opacity-60"

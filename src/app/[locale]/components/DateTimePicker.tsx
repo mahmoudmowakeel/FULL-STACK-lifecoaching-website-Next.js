@@ -227,21 +227,6 @@ export default function DateTimePicker<T extends FormTypes>({
                 {group.times.map((time) => {
                   const convertedTime = time;
 
-                  // console.log(convertedTime)
-                  // const selectedDateStr = selectedDate
-                  //   ? selectedDate.toISOString().split("T")[0]
-                  //   : "";
-                  // const selectedDateStr = selectedDate
-                  //   ? selectedDate.toLocaleDateString("en-CA") // stays local, no UTC conversion
-                  //   : "";
-                  // console.log("heeeeree" + selectedDate)
-                  // console.log(JSON.stringify(calendarData))
-                  // const slot = calendarData.find(
-                  //   (s) =>
-                  //     s.date.split("T")[0] === selectedDateStr &&
-                  //     s.time_slot.trim() === convertedTime.trim()
-                  // );
-
                   const selectedDateStr = selectedDate
                     ? selectedDate.toLocaleDateString("en-CA")
                     : "";
@@ -262,7 +247,7 @@ export default function DateTimePicker<T extends FormTypes>({
                   return (
                     <label
                       key={time}
-                      className={`relative flex justify-center items-center w-[85%] mx-auto py-1 rounded-lg cursor-pointer transition-all text-[0.2em] font-semibold 
+                      className={`relative flex justify-center items-center w-[85%] mx-auto py-1 rounded-lg cursor-pointer transition-all text-[0.5em] md:text-[0.4em] font-semibold 
         ${
           isBooked
             ? "bg-gray-400 cursor-not-allowed opacity-60"
