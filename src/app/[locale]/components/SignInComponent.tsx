@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "./Modal";
 import { X } from "lucide-react";
 import Image from "next/image";
@@ -184,6 +184,10 @@ export default function SignInButton() {
       setMessage("حدث خطأ في الاتصال بالخادم");
     }
   }
+
+  useEffect(() => {
+    getNotes();
+  }, []);
 
   return (
     <>
