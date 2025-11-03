@@ -77,8 +77,10 @@ export default function ReservationButton({ text }: { text: string }) {
       );
 
       setNotes({
-        beforeAccept: before_accept?.text_ar || "",
-        firstEntry: first_entry?.text_ar || "",
+        beforeAccept:
+          locale == "ar" ? before_accept?.text_ar : before_accept?.text_en,
+        firstEntry:
+          locale == "ar" ? first_entry?.text_ar : first_entry?.text_en,
       });
 
       return;
@@ -98,7 +100,8 @@ export default function ReservationButton({ text }: { text: string }) {
       );
 
       setPmessage({
-        complete_reservation: afterReserve?.text_ar || "",
+        complete_reservation:
+          locale == "ar" ? afterReserve?.text_ar : afterReserve?.text_en,
       });
 
       return;
@@ -509,8 +512,8 @@ export default function ReservationButton({ text }: { text: string }) {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-lg">
             <div className="bg-white p-6 rounded-lg text-center max-w-sm mx-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-lg font-semibold text-[#214E78]">
-                جاري تأكيد الحجز...
+              <p className="text-lg font-semibold text-[#214E78]"> 
+                {locale == "ar" ? "جاري تأكيد الحجز..." : "Complete Reservation In Proccess.."}
               </p>
               <p className="text-gray-600 mt-2">{reservationT("title")}</p>
             </div>
@@ -536,7 +539,7 @@ export default function ReservationButton({ text }: { text: string }) {
                 </svg>
               </div>
               <p className="text-lg font-semibold text-green-600">
-                تم تأكيد الحجز بنجاح!
+                {locale == "ar" ? "تم تأكيد الحجز بنجاح!" : "Reservation completed successfully!"}
               </p>
               <p className="text-gray-600 mt-2">سيتم إغلاق النافذة تلقائياً</p>
             </div>
@@ -626,7 +629,7 @@ export default function ReservationButton({ text }: { text: string }) {
                 type="submit"
                 className="sticky bottom-6 left-6 bg-[#214E78] text-white py-2 px-6 text-sm rounded-md cursor-pointer"
               >
-                {loading ? "تحقق..." : reservationT("next")}
+                {loading ? locale == "ar" ? "تحقق..." : "Veryfing" : reservationT("next")}
               </button>
             </div>
           </form>
