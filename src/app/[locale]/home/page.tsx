@@ -40,8 +40,10 @@ export default function HomePage() {
       const reserveData = data.data.find(
         (el: ElementType) => el.type == "reservations"
       );
-      setFreeText(locale == "ar" ? freeData.text_ar: freeData.text_en);
-      setReserveText(locale == "ar" ? reserveData.text_ar : reserveData.text_en);
+      setFreeText(locale == "ar" ? freeData.text_ar : freeData.text_en);
+      setReserveText(
+        locale == "ar" ? reserveData.text_ar : reserveData.text_en
+      );
 
       return;
     } catch (error) {
@@ -101,7 +103,13 @@ export default function HomePage() {
         <main className="flex-grow flex flex-col justify-start">
           {/* Welcome Text */}
           <div className="bg-[#A4D3DD] w-full min-h-[80px] text-center text-[#214E78] font-semibold flex items-center justify-center px-4 py-6">
-            <p className={`${locale == "ar" ? 'text-[0.6rem] sm:text-[0.7rem] md:text-[0.8rem]' : 'text-[0.5rem] sm:text-[0.7rem] md:text-[0.6rem]'}  leading-relaxed max-w-[350px]`}>
+            <p
+              className={`${
+                locale == "ar"
+                  ? "text-[0.6rem] sm:text-[0.7rem] md:text-[0.8rem]"
+                  : "text-[0.5rem] sm:text-[0.7rem] md:text-[0.6rem]"
+              }  leading-relaxed max-w-[350px]`}
+            >
               {t("welcome_text")}
             </p>
           </div>
@@ -165,6 +173,7 @@ export default function HomePage() {
             </section>
 
             {/* Contact Info */}
+            {/* Contact Info */}
             <section className="flex flex-col gap-2 items-center md:items-end text-xs sm:text-xs">
               <div dir="ltr" className="flex items-center gap-2">
                 <Image
@@ -174,24 +183,42 @@ export default function HomePage() {
                   alt="email"
                   className="bg-[#214E78] p-1.5 rounded-full"
                 />
-                <p>Istifhamcompany@gmail.com</p>
+                <a
+                  href="mailto:Istifhamcompany@gmail.com"
+                  className="hover:underline"
+                >
+                  Istifhamcompany@gmail.com
+                </a>
               </div>
+
               <div dir="ltr" className="flex items-center gap-2">
-                <Image
-                  src="/Images/phone.svg"
-                  width={24}
-                  height={24}
-                  alt="phone"
-                  className="bg-[#214E78] p-1.5 rounded-full"
-                />
-                <Image
-                  src="/Images/whatsapp.svg"
-                  width={24}
-                  height={24}
-                  alt="whatsapp"
-                  className="bg-[#214E78] p-1.5 rounded-full"
-                />
-                <p>+966545938783</p>
+                <a href="tel:+966545938783">
+                  <Image
+                    src="/Images/phone.svg"
+                    width={24}
+                    height={24}
+                    alt="phone"
+                    className="bg-[#214E78] p-1.5 rounded-full"
+                  />
+                </a>
+
+                <a
+                  href="https://wa.me/966545938783"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Image
+                    src="/Images/whatsapp.svg"
+                    width={24}
+                    height={24}
+                    alt="whatsapp"
+                    className="bg-[#214E78] p-1.5 rounded-full"
+                  />
+                </a>
+
+                <a href="tel:+966545938783" className="hover:underline">
+                  +966545938783
+                </a>
               </div>
             </section>
           </div>
