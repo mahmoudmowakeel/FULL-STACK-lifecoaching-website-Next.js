@@ -109,16 +109,6 @@ export default function DateTimePickerReserve<T extends FormTypes>({
   // ✅ Time groups remain as is
   const timeGroups = [
     {
-      label: "المساء / Evening",
-      icon: <Moon className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
-      times: [
-        "04:00 م - 05:30 م",
-        "06:00 م - 07:30 م",
-        "08:00 م - 09:30 م",
-        "10:00 م - 11:30 م",
-      ],
-    },
-    {
       label: "الصباح / Morning",
       icon: <Sun className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
       times: [
@@ -129,8 +119,23 @@ export default function DateTimePickerReserve<T extends FormTypes>({
       ],
     },
     {
-      label: "الفجر / Dawn",
+      label: "المساء / Evening",
       icon: <Moon className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
+      times: [
+        "04:00 م - 05:30 م",
+        "06:00 م - 07:30 م",
+        "08:00 م - 09:30 م",
+        "10:00 م - 11:30 م",
+      ],
+    },
+    {
+      label: "الفجر / Dawn",
+      icon: (
+        <div className="relative  mx-auto flex gap-3">
+          <Sun className="text-[#A4D3DD] w-3 h-3 " />
+          <Moon className="text-[#A4D3DD] w- h-3 " />
+        </div>
+      ),
       times: [
         "12:00 ص - 01:30 ص",
         "02:00 ص - 03:30 ص",

@@ -102,24 +102,6 @@ export default function DateTimePicker<T extends FormTypes>({
   const timeGroups = [
     {
       label: "",
-      icon: <Moon className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
-      times: [
-        "12:00 ص - 12:15 ص",
-        "12:30 ص - 12:45 ص",
-        "01:00 ص - 01:15 ص",
-        "02:00 ص - 02:15 ص",
-        "02:30 ص - 02:45 ص",
-        "03:00 ص - 03:15 ص",
-        "04:00 ص - 04:15 ص",
-        "04:30 ص - 04:45 ص",
-        "05:00 ص - 05:15 ص",
-        "06:00 ص - 06:15 ص",
-        "06:30 ص - 06:45 ص",
-        "07:00 ص - 07:15 ص",
-      ],
-    },
-    {
-      label: "",
       icon: <Sun className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
       times: [
         "08:00 ص - 08:15 ص",
@@ -152,6 +134,30 @@ export default function DateTimePicker<T extends FormTypes>({
         "10:00 م - 10:15 م",
         "10:30 م - 10:45 م",
         "11:00 م - 11:15 م",
+      ],
+    },
+
+    {
+      label: "",
+      icon: (
+        <div className="relative  mx-auto flex gap-3">
+          <Sun className="text-[#A4D3DD] w-3 h-3 " />
+          <Moon className="text-[#A4D3DD] w- h-3 " />
+        </div>
+      ),
+      times: [
+        "12:00 ص - 12:15 ص",
+        "12:30 ص - 12:45 ص",
+        "01:00 ص - 01:15 ص",
+        "02:00 ص - 02:15 ص",
+        "02:30 ص - 02:45 ص",
+        "03:00 ص - 03:15 ص",
+        "04:00 ص - 04:15 ص",
+        "04:30 ص - 04:45 ص",
+        "05:00 ص - 05:15 ص",
+        "06:00 ص - 06:15 ص",
+        "06:30 ص - 06:45 ص",
+        "07:00 ص - 07:15 ص",
       ],
     },
   ];
@@ -204,9 +210,9 @@ export default function DateTimePicker<T extends FormTypes>({
           الوقت / Time
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-7 md:gap-2 max-h-[140px] md:max-h-[200px] overflow-y-scroll">
+        <div className="grid md:grid-cols-3 gap-10 md:gap-2 max-h-[140px] md:max-h-[200px] overflow-y-scroll">
           {timeGroups.map((group, index) => (
-            <div key={index} className="flex flex-col items-center rounded-xl">
+            <div key={index} className="flex flex-col mb-[80px] md:mb-0  items-center rounded-xl">
               <div className="flex text-[0.4em] flex-col pb-1 items-center mb-0 md:mb-2 border-b">
                 {group.icon}
                 <span className="text-center text-[0.5em] font-bold mt-1">
@@ -238,7 +244,7 @@ export default function DateTimePicker<T extends FormTypes>({
                   return (
                     <label
                       key={time}
-                      className={`relative flex justify-center items-center w-[85%] mx-auto py-1 rounded-lg cursor-pointer transition-all text-[0.5em] md:text-[0.8em] font-semibold 
+                      className={`relative flex justify-center items-center w-[85%] mx-auto py-1 rounded-lg cursor-pointer transition-all text-[0.5em] md:text-[0.4em] font-semibold 
         ${
           isBooked
             ? "bg-gray-400 cursor-not-allowed opacity-60"
