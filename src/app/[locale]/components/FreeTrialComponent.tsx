@@ -92,6 +92,10 @@ export default function FreeTrialButton({ text }: { text: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.date_time) {
+      setMessage("حقل التاريخ والوقت مطلوب");
+      return;
+    }
 
     try {
       let formattedDate = formData.date_time;
@@ -497,7 +501,11 @@ export default function FreeTrialButton({ text }: { text: string }) {
             </div>
 
             <div className="w-full max-w-xs sm:max-w-none sm:w-[85%] flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between items-center">
-              <label className={`w-full sm:w-auto ${locale == "ar" ? 'text-right' : "text-left" }  mb-1 sm:mb-0 text-xs sm:text-sm`}>
+              <label
+                className={`w-full sm:w-auto ${
+                  locale == "ar" ? "text-right" : "text-left"
+                }  mb-1 sm:mb-0 text-xs sm:text-sm`}
+              >
                 {freeTrialT("email")}
               </label>
               <input
@@ -511,7 +519,11 @@ export default function FreeTrialButton({ text }: { text: string }) {
             </div>
 
             <div className="w-full max-w-xs sm:max-w-none sm:w-[85%] flex flex-col sm:flex-row gap-2 sm:gap-4 justify-between items-center relative">
-              <label className={`w-full sm:w-auto ${locale == "ar" ? 'text-right' : "text-left" }  mb-1 sm:mb-0 text-xs sm:text-sm`}>
+              <label
+                className={`w-full sm:w-auto ${
+                  locale == "ar" ? "text-right" : "text-left"
+                }  mb-1 sm:mb-0 text-xs sm:text-sm`}
+              >
                 {freeTrialT("verify_code")}
               </label>
               <div className="w-full sm:w-[70%] relative">
