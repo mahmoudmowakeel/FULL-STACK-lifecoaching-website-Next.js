@@ -202,7 +202,7 @@ export async function generateInvoicePDF(
         color: secondaryColor,
     });
 
-    page.drawText(`${reservation.amount} SAR`, {
+    page.drawText(`${(Number(reservation.amount) / 100).toFixed(2)} AED`, {
         x: width - 120,
         y: tableStartY - 15,
         size: 10,
@@ -221,7 +221,7 @@ export async function generateInvoicePDF(
         color: secondaryColor,
     });
 
-    page.drawText(`${reservation.amount} SAR`, {
+    page.drawText(`${(Number(reservation.amount) / 100).toFixed(2)} AED`, {
         x: width - 120,
         y: totalY,
         size: 14,

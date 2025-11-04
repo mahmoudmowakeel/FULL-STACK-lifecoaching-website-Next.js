@@ -160,8 +160,8 @@ function CheckoutForm({
             disabled={!stripe || status === "processing"}
             className="w-full bg-[#214E78] text-white py-2 rounded-md hover:bg-[#1a3e63] transition duration-200"
           >
-            {status === "processing" ? t("processing") : t("pay_now")} {amount}{" "}
-            {t("currency")}
+            {status === "processing" ? t("processing") : t("pay_now")}{" "}
+            {(Number(amount) / 100).toFixed(2)} {t("currency")}
           </button>
         </>
       ) : (
