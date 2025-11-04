@@ -79,9 +79,9 @@ export default function HomePage() {
 
       {/* ✅ Grid-based Layout */}
       <div
-        className="grid max-h-[calc(100vh-100px)] bg-white mt-[88px]"
+        className="grid min-h-[calc(100vh-100px)] bg-white mt-[88px]"
         style={{
-          gridTemplateRows: "2fr 0.5fr 2fr 1fr 0.3fr",
+          gridTemplateRows: "1fr 0.5fr 1fr 0.1fr 0.1fr",
         }}
       >
         {/* (1) Background Image */}
