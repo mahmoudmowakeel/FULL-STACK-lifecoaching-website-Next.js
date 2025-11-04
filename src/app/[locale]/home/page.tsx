@@ -33,10 +33,16 @@ export default function HomePage() {
 
       if (!data.success) return false;
 
-      const freeData = data.data.find((el: ElementType) => el.type == "free_trials");
-      const reserveData = data.data.find((el: ElementType) => el.type == "reservations");
+      const freeData = data.data.find(
+        (el: ElementType) => el.type == "free_trials"
+      );
+      const reserveData = data.data.find(
+        (el: ElementType) => el.type == "reservations"
+      );
       setFreeText(locale == "ar" ? freeData.text_ar : freeData.text_en);
-      setReserveText(locale == "ar" ? reserveData.text_ar : reserveData.text_en);
+      setReserveText(
+        locale == "ar" ? reserveData.text_ar : reserveData.text_en
+      );
     } catch (error) {
       console.error("Error checking hiring status:", error);
       return false;
@@ -79,10 +85,15 @@ export default function HomePage() {
 
       {/* ✅ Grid-based Layout */}
       <div
-        className="grid min-h-[calc(100vh-100px)] bg-white mt-[88px]"
-        style={{
-          gridTemplateRows: "1fr 0.5fr 1fr 0.1fr 0.1fr",
-        }}
+        className="
+    grid
+    max-h-[calc(100vh-1px)]
+    md:min-h-[calc(100vh-100px)]
+    bg-white
+    mt-[88px]
+    grid-rows-[1.2fr_0.5fr_0.7fr_0.1fr_0.1fr]
+    md:grid-rows-[1fr_0.3fr_1fr_0.2fr_0.2fr]
+  "
       >
         {/* (1) Background Image */}
         <div className="relative w-full h-full">
