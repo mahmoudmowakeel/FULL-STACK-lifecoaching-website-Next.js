@@ -113,20 +113,34 @@ export default function ReservationButton({ text }: { text: string }) {
 
   // Calculate amount based on reservation type
   const getAmount = () => {
+    // helper to convert Arabic numerals (٠١٢٣٤٥٦٧٨٩) to Western (0123456789)
+    const normalizeArabicNumbers = (
+      str: string | number | undefined
+    ): string => {
+      if (!str) return "0";
+      return String(str).replace(/[٠-٩]/g, (d) =>
+        String(d.charCodeAt(0) - 1632)
+      );
+    };
+
+    // pick the right price field
+    let priceStr = "0";
     switch (formData.type) {
       case "online":
-        return String(typeData?.listen_price)?.replace(/[٠-٩]/g, (d) =>
-          String(d.charCodeAt(0) - 1632)
-        );
+        priceStr = normalizeArabicNumbers(typeData?.listen_price);
+        break;
       case "inPerson":
-        return String(typeData?.listen_meet_price)?.replace(/[٠-٩]/g, (d) =>
-          String(d.charCodeAt(0) - 1632)
-        );
+        priceStr = normalizeArabicNumbers(typeData?.listen_meet_price);
+        break;
       default:
-        return String(typeData?.listen_price)?.replace(/[٠-٩]/g, (d) =>
-          String(d.charCodeAt(0) - 1632)
-        );
+        priceStr = normalizeArabicNumbers(typeData?.listen_price);
     }
+
+    // convert to number of fils (Stripe expects smallest currency unit)
+    const priceAed = parseFloat(priceStr); // e.g. 49.99
+    const amountInFils = Math.round(priceAed * 100); // e.g. 4999
+
+    return amountInFils;
   };
 
   const handleSubmit = async () => {
@@ -512,8 +526,10 @@ export default function ReservationButton({ text }: { text: string }) {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-lg">
             <div className="bg-white p-6 rounded-lg text-center max-w-sm mx-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-lg font-semibold text-[#214E78]"> 
-                {locale == "ar" ? "جاري تأكيد الحجز..." : "Complete Reservation In Proccess.."}
+              <p className="text-lg font-semibold text-[#214E78]">
+                {locale == "ar"
+                  ? "جاري تأكيد الحجز..."
+                  : "Complete Reservation In Proccess.."}
               </p>
               <p className="text-gray-600 mt-2">{reservationT("title")}</p>
             </div>
@@ -539,7 +555,9 @@ export default function ReservationButton({ text }: { text: string }) {
                 </svg>
               </div>
               <p className="text-lg font-semibold text-green-600">
-                {locale == "ar" ? "تم تأكيد الحجز بنجاح!" : "Reservation completed successfully!"}
+                {locale == "ar"
+                  ? "تم تأكيد الحجز بنجاح!"
+                  : "Reservation completed successfully!"}
               </p>
               <p className="text-gray-600 mt-2">سيتم إغلاق النافذة تلقائياً</p>
             </div>
@@ -629,7 +647,11 @@ export default function ReservationButton({ text }: { text: string }) {
                 type="submit"
                 className="sticky bottom-6 left-6 bg-[#214E78] text-white py-2 px-6 text-sm rounded-md cursor-pointer"
               >
-                {loading ? locale == "ar" ? "تحقق..." : "Veryfing" : reservationT("next")}
+                {loading
+                  ? locale == "ar"
+                    ? "تحقق..."
+                    : "Veryfing"
+                  : reservationT("next")}
               </button>
             </div>
           </form>
