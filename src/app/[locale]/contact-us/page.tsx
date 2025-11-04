@@ -12,10 +12,10 @@ export default function ContactUpPage() {
           className="bg-[#214E78] px-2 py-2 rounded-full"
         />
         <a
-          href="mailto:Istifhamcompany@gmail.com"
+          href="mailto:Info@istifhamcompany.com"
           className="text-md hover:underline"
         >
-          Istifhamcompany@gmail.com
+          Info@istifhamcompany.com
         </a>
       </div>
 

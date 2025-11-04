@@ -188,10 +188,10 @@ export default function HomePage() {
                 className="bg-[#214E78] p-1.5 rounded-full"
               />
               <a
-                href="mailto:Istifhamcompany@gmail.com"
+                href="mailto:Info@istifhamcompany.com"
                 className="hover:underline"
               >
-                Istifhamcompany@gmail.com
+                Info@istifhamcompany.com
               </a>
             </div>
 
