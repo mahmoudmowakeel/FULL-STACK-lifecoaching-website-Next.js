@@ -51,7 +51,12 @@ export default function AdminDateTimeEditor({
   const timeGroups = [
     {
       label: " ",
-      icon: <Moon className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
+      icon: (
+        <div className="relative  mx-auto flex gap-3">
+          <Sun className="text-[#A4D3DD] w-3 h-3 " />
+          <Moon className="text-[#A4D3DD] w- h-3 " />
+        </div>
+      ),
       times: [
         "12:00 ص - 12:15 ص",
         "12:30 ص - 12:45 ص",
@@ -228,6 +233,9 @@ export default function AdminDateTimeEditor({
         </div>
       ) : (
         <>
+          <h2 className="text-center text-xs font-semibold mb-3 border-y py-1 border-white/40 pb-2">
+            الوقت / Time
+          </h2>
           <div className="grid md:grid-cols-3 gap-4  overflow-y-scroll">
             {timeGroups.map((group, gi) => (
               <div key={gi} className="flex flex-col items-center rounded-xl">
@@ -269,7 +277,13 @@ export default function AdminDateTimeEditor({
                         />
                         <button
                           key={time}
-                          className="relative w-[80%] py-1 rounded-lg text-[0.8em] font-semibold transition-all bg-[#A4D3DD]"
+                          className={`relative w-[80%] py-1 rounded-lg text-[0.8em] font-semibold transition-all ${
+                            isBooked
+                              ? "bg-[#CCCCCC]"
+                              : isAvailable
+                              ? "bg-[#A4D3DD]"
+                              : "bg-white border-[#214E78]"
+                          }`}
                           onClick={() => {
                             if (!dateISO) return alert("اختر تاريخاً أولاً");
                             toggleSlot(dateISO, time);

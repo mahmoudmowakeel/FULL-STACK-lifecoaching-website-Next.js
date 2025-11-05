@@ -7,6 +7,8 @@ import DateTimePicker from "./DateTimePicker";
 import { FreeTrialFormData } from "@/lib/types/freeTrials";
 import { NotesModal } from "./NotesModal";
 import { useLocale } from "next-intl"; // Use next-intl's useLocale hook
+import countriesData from "country-telephone-data";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 type ElementType = {
   id: number;
@@ -15,6 +17,17 @@ type ElementType = {
   text_en: string;
   created_at: string;
 };
+
+const countries = countriesData.allCountries.map((c) => ({
+  name: c.name,
+  code: `+${c.dialCode}`,
+  flag: getFlagEmoji(c.iso2),
+}));
+function getFlagEmoji(countryCode: string) {
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
+}
 
 export default function FreeTrialButton({ text }: { text: string }) {
   const t = useTranslations("homePage");
@@ -37,6 +50,8 @@ export default function FreeTrialButton({ text }: { text: string }) {
   const [note, setNote] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [phoneError, setPhoneError] = useState("");
+
   const [notes, setNotes] = useState<{
     after_free: string;
   }>({
@@ -128,7 +143,6 @@ export default function FreeTrialButton({ text }: { text: string }) {
       if (response.ok && data.success) {
         // Booking is successful
         setMessage("جاري تاكيد الحجز...");
-        console.log("timeeeeeeeeeeee" + formData.date_time);
         const startTime = new Date(formData.date_time!);
 
         const endTime = new Date(startTime.getTime() + 15 * 60 * 1000);
@@ -320,34 +334,13 @@ export default function FreeTrialButton({ text }: { text: string }) {
     getPmessages();
   }, []);
 
-  const countries = [
-    { name: "Saudi Arabia", code: "+966", flag: "🇸🇦" },
-    { name: "United Arab Emirates", code: "+971", flag: "🇦🇪" },
-    { name: "Egypt", code: "+20", flag: "🇪🇬" },
-    { name: "Kuwait", code: "+965", flag: "🇰🇼" },
-    { name: "Qatar", code: "+974", flag: "🇶🇦" },
-    { name: "Bahrain", code: "+973", flag: "🇧🇭" },
-    { name: "Oman", code: "+968", flag: "🇴🇲" },
-    { name: "Jordan", code: "+962", flag: "🇯🇴" },
-    { name: "Lebanon", code: "+961", flag: "🇱🇧" },
-    { name: "United States", code: "+1", flag: "🇺🇸" },
-    { name: "United Kingdom", code: "+44", flag: "🇬🇧" },
-    { name: "France", code: "+33", flag: "🇫🇷" },
-    { name: "Germany", code: "+49", flag: "🇩🇪" },
-    { name: "India", code: "+91", flag: "🇮🇳" },
-    { name: "Pakistan", code: "+92", flag: "🇵🇰" },
-    { name: "Morocco", code: "+212", flag: "🇲🇦" },
-    { name: "Tunisia", code: "+216", flag: "🇹🇳" },
-    { name: "Algeria", code: "+213", flag: "🇩🇿" },
-    { name: "Turkey", code: "+90", flag: "🇹🇷" },
-    { name: "Canada", code: "+1", flag: "🇨🇦" },
-  ];
-
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const filteredCountries = countries.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
+  const filteredCountries = countries.filter(
+    (country) =>
+      country.name.toLowerCase().includes(search.toLowerCase()) ||
+      country.code.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -427,29 +420,24 @@ export default function FreeTrialButton({ text }: { text: string }) {
                 {freeTrialT("phone")}
               </label>
               {/* ✅ Phone with country code dropdown */}
-              <div className="w-full sm:w-[70%] flex items-center gap-2 relative">
+              <div className="flex w-[70%] gap-2 ">
                 <input
                   id="phone"
                   name="phone"
-                  type="text"
-                  placeholder={freeTrialT("phone_place")}
-                  value={formData.phone || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      phone: `${selectedCountry.code}${e.target.value.replace(
-                        selectedCountry.code,
-                        ""
-                      )}`,
-                    })
-                  }
-                  className="w-[60%] sm:w-[70%] bg-[#214E78] text-white rounded-md px-3 py-2 sm:py-3 focus:outline-none placeholder:text-[#a4d3dd9d] placeholder:text-sm text-sm text-center font-medium"
+                  value={formData.phone!}
+                  onChange={handleChange}
+                  type="tel"
+                  placeholder={freeTrialT("phone")}
+                  className={`w-3/4 text-xs bg-[#214E78] text-white rounded-md px-3  focus:outline-none text-center ${
+                    phoneError ? "border-2 border-red-500" : ""
+                  }`}
                 />
-                <div className="relative w-[40%] sm:w-[30%]">
+
+                <div className="relative w-1/4">
                   <button
                     type="button"
                     onClick={() => setDropdownOpen((prev) => !prev)}
-                    className="w-full bg-[#214E78] text-white rounded-md px-3 py-2 flex items-center justify-between"
+                    className="w-full bg-[#214E78] text-white rounded-md text-[0.7rem] px-3 py-2 flex items-center justify-between"
                   >
                     <span>
                       {selectedCountry.flag} {selectedCountry.code}
@@ -471,13 +459,14 @@ export default function FreeTrialButton({ text }: { text: string }) {
                   </button>
 
                   {dropdownOpen && (
-                    <div className="absolute z-50 bg-white text-[#214E78] rounded-md shadow-lg mt-1 w-48 max-h-60 overflow-y-auto">
+                    <div className="absolute z-50 left-0 bg-white text-[#214E78] rounded-md shadow-lg mt-1 w-56 max-h-60 overflow-y-auto">
                       <input
                         type="text"
                         placeholder={freeTrialT("search_country")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full p-2 border-b border-gray-300 focus:outline-none text-sm"
+                        dir="ltr"
                       />
                       {filteredCountries.map((country) => (
                         <div
@@ -486,7 +475,17 @@ export default function FreeTrialButton({ text }: { text: string }) {
                             setSelectedCountry(country);
                             setDropdownOpen(false);
                             setSearch("");
+                            // re-validate on country change
+                            const parsed = parsePhoneNumberFromString(
+                              country.code + formData.phone?.replace(/\D/g, "")
+                            );
+                            if (parsed && parsed.isValid()) {
+                              setPhoneError("");
+                            } else {
+                              setPhoneError("❌ رقم غير صالح لهذا البلد");
+                            }
                           }}
+                          dir="ltr"
                           className="px-3 py-2 cursor-pointer hover:bg-[#A4D3DD] text-sm flex items-center gap-2"
                         >
                           <span>{country.flag}</span>

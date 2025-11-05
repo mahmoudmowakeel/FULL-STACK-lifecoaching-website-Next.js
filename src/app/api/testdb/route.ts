@@ -6,21 +6,29 @@ export async function POST() {
 
   try {
     connection = await mysql.createConnection({
-       host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME
     });
 
     // ✅ Ensure table exists
     const date = await connection.query(`
-TRUNCATE TABLE free_trials;
+INSERT INTO additional_page_texts (type, text_ar, text_en, created_at, updated_at)
+VALUES (
+  'no_dates',
+  'لا توجد مواعيد متاحه',
+  'No available dates',
+  NOW(),
+  NOW()
+);
+
 
     `);
 
     return NextResponse.json({
       success: true,
-      message: "✅ admin Inserterd created",
+      message: "✅ new type done",
       data: date
     });
   } catch (err) {

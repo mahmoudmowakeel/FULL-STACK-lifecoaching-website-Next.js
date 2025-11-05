@@ -69,10 +69,11 @@
     "otp_wrong": "Incorrect verification code",
     "prev": "Previous",
     "submit": "Submit",
-    "confirming_reservation": " جاري تأكيد الحجز...",
-    "verify_data": "برجاء الانتظار حتى يتم تأكيد بيانات الحجز",
-    "reservation_done": "تم تأكيد الحجز بنجاح!",
-    "auto_close": "سيتم إغلاق النافذة تلقائياً"
+    "confirming_reservation": "Confirming reservation...",
+    "verify_data": "Please wait while your reservation details are being verified",
+    "reservation_done": "Reservation confirmed successfully!",
+    "auto_close": "The window will close automatically",
+    "search_country": "Search for a country..."
   },
   "reservation": {
     "title": "Reservation",

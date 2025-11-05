@@ -49,17 +49,22 @@ const AdminDateTimeEditorReserve = forwardRef<AdminDateTimeEditorReserveRef>(
 
     const timeGroups = [
       {
-        label: "المساء / Evening",
-        icon: <Moon className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
+        label: "",
+        icon: (
+          <div className="relative  mx-auto flex gap-3">
+            <Sun className="text-[#A4D3DD] w-3 h-3 " />
+            <Moon className="text-[#A4D3DD] w- h-3 " />
+          </div>
+        ),
         times: [
-          "04:00 م - 05:30 م",
-          "06:00 م - 07:30 م",
-          "08:00 م - 09:30 م",
-          "10:00 م - 11:30 م",
+          "12:00 ص - 01:30 ص",
+          "02:00 ص - 03:30 ص",
+          "04:00 ص - 05:30 ص",
+          "06:00 ص - 07:30 ص",
         ],
       },
       {
-        label: "الصباح / Morning",
+        label: "",
         icon: <Sun className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
         times: [
           "08:00 ص - 09:30 ص",
@@ -69,13 +74,13 @@ const AdminDateTimeEditorReserve = forwardRef<AdminDateTimeEditorReserveRef>(
         ],
       },
       {
-        label: "الفجر / Dawn",
+        label: "",
         icon: <Moon className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
         times: [
-          "12:00 ص - 01:30 ص",
-          "02:00 ص - 03:30 ص",
-          "04:00 ص - 05:30 ص",
-          "06:00 ص - 07:30 ص",
+          "04:00 م - 05:30 م",
+          "06:00 م - 07:30 م",
+          "08:00 م - 09:30 م",
+          "10:00 م - 11:30 م",
         ],
       },
     ];
@@ -165,10 +170,10 @@ const AdminDateTimeEditorReserve = forwardRef<AdminDateTimeEditorReserveRef>(
         if (data.success) {
           setCalendarData(data.data);
           setChangesMap({});
-          toast.success("تم حفظ التغييرات بنجاح.")
+          toast.success("تم حفظ التغييرات بنجاح.");
         } else {
           console.error("Save failed:", data.error);
-          toast.error("فشل في حفظ التغييرات , برجاء اعادة المجاوله.")
+          toast.error("فشل في حفظ التغييرات , برجاء اعادة المجاوله.");
         }
       } catch (err) {
         console.error("Network save error:", err);
@@ -250,57 +255,63 @@ const AdminDateTimeEditorReserve = forwardRef<AdminDateTimeEditorReserveRef>(
             جاري تحميل المواعيد...
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-4">
-            {timeGroups.map((group, gi) => (
-              <div key={gi} className="flex flex-col items-center rounded-xl">
-                <div className="flex text-[0.7em] flex-col pb-1 items-center mb-2 border-b">
-                  {group.icon}
-                  <span className="text-center text-[0.8em] font-bold mt-1">
-                    {group.label}
-                  </span>
+          <>
+            <h2 className="text-center text-xs font-semibold mb-3 border-y py-1 border-white/40 pb-2">
+              الوقت / Time
+            </h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              {timeGroups.map((group, gi) => (
+                <div key={gi} className="flex flex-col items-center rounded-xl">
+                  <div className="flex text-[0.7em] flex-col pb-1 items-center mb-2 border-b">
+                    {group.icon}
+                    <span className="text-center text-[0.8em] font-bold mt-1">
+                      {group.label}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2 w-full relative">
+                    {group.times.map((time) => {
+                      const dateISO = selectedDateISO;
+                      const status = dateISO
+                        ? getStatusFor(dateISO, time)
+                        : "closed";
+
+                      const isBooked = status === "booked";
+                      const isAvailable = status === "available";
+
+                      return (
+                        <div key={time} className="flex gap-3 items-center">
+                          <span
+                            className={` w-2 h-2 rounded-full ${
+                              isBooked
+                                ? "bg-[#CCCCCC]"
+                                : isAvailable
+                                ? "bg-[#A4D3DD]"
+                                : "bg-white border border-[#214E78]"
+                            }`}
+                          />
+                          <button
+                            className={`relative w-[80%] py-1 rounded-lg text-[0.8em] font-semibold transition-all ${isBooked ? 'bg-[#CCCCCC]' : isAvailable ?  'bg-[#A4D3DD]' : 'bg-white border-[#214E78]'}`}
+                            onClick={() => {
+                              if (!dateISO)
+                                return toast.warning("اختر تاريخاً أولاً");
+                              toggleSlot(dateISO, time);
+                            }}
+                            disabled={isBooked}
+                            type="button"
+                          >
+                            <div className="text-[10px] flex justify-center items-center text-[#214E78]">
+                              {time}
+                            </div>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-
-                <div className="flex flex-col gap-2 w-full relative">
-                  {group.times.map((time) => {
-                    const dateISO = selectedDateISO;
-                    const status = dateISO
-                      ? getStatusFor(dateISO, time)
-                      : "closed";
-
-                    const isBooked = status === "booked";
-                    const isAvailable = status === "available";
-
-                    return (
-                      <div key={time} className="flex gap-3 items-center">
-                        <span
-                          className={` w-2 h-2 rounded-full ${
-                            isBooked
-                              ? "bg-[#CCCCCC]"
-                              : isAvailable
-                              ? "bg-[#A4D3DD]"
-                              : "bg-white border border-[#214E78]"
-                          }`}
-                        />
-                        <button
-                          className="relative w-[80%] py-1 rounded-lg text-[0.8em] font-semibold transition-all bg-[#A4D3DD]"
-                          onClick={() => {
-                            if (!dateISO) return toast.warning("اختر تاريخاً أولاً");
-                            toggleSlot(dateISO, time);
-                          }}
-                          disabled={isBooked}
-                          type="button"
-                        >
-                          <div className="text-[10px] flex justify-center items-center text-[#214E78]">
-                            {time}
-                          </div>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     );

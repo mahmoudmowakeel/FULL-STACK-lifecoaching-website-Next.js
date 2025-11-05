@@ -4,6 +4,8 @@ import ContentContainer from "../_UI/ContentContainer";
 import NormalButton from "../_UI/NormalButton";
 import FreeTrialsTable from "../_components/FreeTrialsTable";
 import { useEffect, useState, useRef } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export interface FreeTrial {
   id: number;
@@ -25,6 +27,69 @@ export default function FreeTrialsPage() {
   const [emailFilter, setEmailFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const filterRef = useRef<HTMLDivElement>(null);
+
+  // ✅ PDF Download Function
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(18);
+    doc.text("Free Trials Report", 14, 20);
+
+    // Add date
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+    doc.text(`Status: Pending`, 14, 34);
+    doc.text(`Total Records: ${filteredTrials.length}`, 14, 40);
+
+    // Prepare table data
+    const tableData = filteredTrials.map((item, index) => {
+      // Format date/time
+      let formattedDateTime = "";
+      if (item.date_time) {
+        const date = new Date(item.date_time);
+        formattedDateTime = date.toISOString().slice(0, 16).replace("T", " ");
+      }
+
+      return [
+        index + 1,
+        item.name || "",
+        item.phone || "",
+        item.email || "",
+        formattedDateTime,
+      ];
+    });
+
+    // Generate table
+    autoTable(doc, {
+      startY: 46,
+      head: [["#", "Name", "Phone", "Email", "Date & Time"]],
+      body: tableData,
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [164, 211, 221], // #A4D3DD
+        textColor: [33, 78, 120], // #214E78
+        fontStyle: "bold",
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      columnStyles: {
+        0: { cellWidth: 15 }, // Index
+        1: { cellWidth: 40 }, // Name
+        2: { cellWidth: 35 }, // Phone
+        3: { cellWidth: 50 }, // Email
+        4: { cellWidth: 40 }, // Date & Time
+      },
+    });
+
+    // Save the PDF
+    const fileName = `free-trials-pending-${new Date().getTime()}.pdf`;
+    doc.save(fileName);
+  };
 
   // ✅ Fetch data
   const fetchFreeTrials = async () => {
@@ -232,7 +297,11 @@ export default function FreeTrialsPage() {
                 الوقت و التاريخ <br /> Date & Time
               </FreeTrialsTable.TableHeader.TableCoulmn>
               <FreeTrialsTable.TableHeader.TableCoulmn>
-                <NormalButton textColor="#FFFFFF" bgColor="#214E78">
+                <NormalButton 
+                  textColor="#FFFFFF" 
+                  bgColor="#214E78"
+                  onClick={downloadPDF}
+                >
                   PDF
                   <Image
                     src="/Images/file-down.svg"
@@ -251,9 +320,6 @@ export default function FreeTrialsPage() {
                   key={trial.id}
                   index={index}
                 >
-                  {/* <NormalButton bgColor="#214E78" textColor="#FFFFFF">
-                    تعديل <br /> Edit
-                  </NormalButton> */}
                   <NormalButton
                     bgColor="#FFFFFF"
                     textColor="#214E78"
