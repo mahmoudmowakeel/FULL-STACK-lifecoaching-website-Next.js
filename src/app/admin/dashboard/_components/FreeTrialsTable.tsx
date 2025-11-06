@@ -88,7 +88,7 @@ export default function FreeTrialsTable({
               handleComplete={handleComplete}
               editable={status === "pending"}
               showCompleteButton={status === "pending"}
-              openModalForTrial={openModalForTrial}
+              openModalForTrial={openModalForTrial!}
               handleSave={handleSave}
             />
           ))}

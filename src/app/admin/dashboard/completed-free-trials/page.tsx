@@ -270,7 +270,6 @@ export default function CompletedFreeTrialsPage() {
             toggleSelectAll={toggleSelectAll}
             downloadPDF={downloadPDF}
             status="completed"
-            openModalForTrial={() => {}} // NEW PROP
           />
         )}
       </ContentContainer>
