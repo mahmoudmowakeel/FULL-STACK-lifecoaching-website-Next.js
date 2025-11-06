@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "sonner";
 import ContentContainer from "../_UI/ContentContainer";
 import AdminDateTimeEditor from "../_components/DateTime_free";
 import { useState } from "react";
@@ -59,11 +60,21 @@ export default function CalendarFreeTrialsPage() {
     }
   };
 
+  // ✅ New function to cancel changes
+  const handleCancelAll = () => {
+    if (Object.keys(changesMap).length === 0) {
+      alert("لا توجد تغييرات لإلغائها");
+      return;
+    }
+    setChangesMap({}); // discard unsaved edits
+    toast.success("✅ تم إلغاء جميع التغييرات غير المحفوظة");
+  };
+
   return (
     <div>
       <ContentContainer
         color="rgba(33, 78, 120, 0.7)"
-        title="التجارب المجانيه التقويم/ Free Trials Calendar"
+        title="التجارب المجانيه التقويم / Free Trials Calendar"
       >
         <div>
           <AdminDateTimeEditor
@@ -74,7 +85,8 @@ export default function CalendarFreeTrialsPage() {
             handleSaveAll={handleSaveAll}
             saving={saving}
           />
-          <section className="text-[0.6rem] flex justify-between px-6 p-1 bg-white text-[#214E78] font-bold w-[50%] mx-auto rounded-b-2xl ">
+
+          <section className="text-[0.6rem] flex justify-between px-6 p-1 bg-white text-[#214E78] font-bold w-[50%] mx-auto rounded-b-2xl">
             <div className="flex gap-2 items-center">
               <span className="w-2 h-2 bg-[#FFFFFF] border border-[#214E78] rounded-full" />
               <p>مغلق</p>
@@ -89,6 +101,7 @@ export default function CalendarFreeTrialsPage() {
             </div>
           </section>
         </div>
+
         <div className="mt-6 flex justify-center gap-2 w-[80%] mx-auto">
           <button
             onClick={handleSaveAll}
@@ -97,6 +110,16 @@ export default function CalendarFreeTrialsPage() {
             type="button"
           >
             {saving ? "جارٍ الحفظ..." : "حفظ / Save"}
+          </button>
+
+          {/* ✅ Cancel button now discards all changes */}
+          <button
+            onClick={handleCancelAll}
+            disabled={saving}
+            className="px-6 py-1 rounded-3xl bg-white text-[#214E78] font-bold cursor-pointer"
+            type="button"
+          >
+            الغاء / Cancel
           </button>
         </div>
       </ContentContainer>

@@ -7,6 +7,7 @@ import ContentContainer from "../_UI/ContentContainer";
 import DateTimePicker from "@/app/[locale]/components/DateTimePicker";
 import { ApiResponse, ListeningOptions } from "../listen-meet/page";
 import DateTimePickerReserve from "@/app/[locale]/components/DateTimePicker_reserve";
+import AdminDateTimePickerReserve from "../_components/ReservePicketForAdmin";
 
 export default function ReservationButton() {
   const [step, setStep] = useState<number>(1);
@@ -32,6 +33,25 @@ export default function ReservationButton() {
   const [isProcessingReservation, setIsProcessingReservation] = useState(false);
   const [data, setData] = useState<ListeningOptions | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [typeData, setTypeData] = useState<ListeningOptions>();
+  // ✅ Fetch existing data
+  const fetcTypehData = async (): Promise<void> => {
+    try {
+      const res = await fetch("/api/get-listening-options");
+      const json: ApiResponse<ListeningOptions> = await res.json();
+      if (json.success && json.data) {
+        setTypeData({
+          ...json.data,
+          listen_status: Boolean(json.data.listen_status),
+          listen_meet_status: Boolean(json.data.listen_meet_status),
+        });
+      }
+    } catch (error) {
+      console.error("Error loading listening data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ✅ Fetch existing data
   const fetchData = async (): Promise<void> => {
@@ -53,17 +73,40 @@ export default function ReservationButton() {
   };
 
   useEffect(() => {
+    fetcTypehData();
     fetchData();
   }, []);
 
   // Calculate amount based on reservation type (kept same logic)
   const getAmount = () => {
+    // helper to convert Arabic numerals (٠١٢٣٤٥٦٧٨٩) to Western (0123456789)
+    const normalizeArabicNumbers = (
+      str: string | number | undefined
+    ): string => {
+      if (!str) return "0";
+      return String(str).replace(/[٠-٩]/g, (d) =>
+        String(d.charCodeAt(0) - 1632)
+      );
+    };
+
+    // pick the right price field
+    let priceStr = "0";
     switch (formData.type) {
       case "online":
-        return data?.listen_price;
+        priceStr = normalizeArabicNumbers(typeData?.listen_price);
+        break;
       case "inPerson":
-        return data?.listen_meet_price;
+        priceStr = normalizeArabicNumbers(typeData?.listen_meet_price);
+        break;
+      default:
+        priceStr = normalizeArabicNumbers(typeData?.listen_price);
     }
+
+    // convert to number of fils (Stripe expects smallest currency unit)
+    const priceAed = parseFloat(priceStr); // e.g. 49.99
+    const amountInFils = Math.round(priceAed * 100); // e.g. 4999
+
+    return amountInFils;
   };
 
   // ADMIN submit: no payment gateway — create reservation, meeting, and send emails
@@ -78,6 +121,19 @@ export default function ReservationButton() {
     setIsProcessingReservation(true);
 
     try {
+      let formattedDate = formData.date_time;
+      if (formattedDate) {
+        const date = new Date(formattedDate);
+        formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}-${date
+          .getDate()
+          .toString()
+          .padStart(2, "0")} ${date
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+      }
       // 1) Create reservation (status pending)
       const reservationResponse = await fetch("/api/create-reservation", {
         method: "POST",
@@ -85,7 +141,7 @@ export default function ReservationButton() {
         body: JSON.stringify({
           payment_bill: "manual_admin_booking",
           email: formData.email,
-          date_time: formData.date_time,
+          date_time: formattedDate,
           type: formData.type,
           amount: getAmount(),
           status: "pending",
@@ -446,7 +502,7 @@ export default function ReservationButton() {
                 />
                 <button
                   type="button"
-                 className="absolute left-[4rem] sm:left-[3.5rem] md:left-[5.5rem] top-2 sm:top-1 text-[#214E78] text-[8px] sm:text-xs bg-[#A4D3DD] py-1 px-2 sm:py-2 sm:px-3 rounded-lg cursor-pointer"
+                  className="absolute left-[4rem] sm:left-[3.5rem] md:left-[5.5rem] top-2 sm:top-1 text-[#214E78] text-[8px] sm:text-xs bg-[#A4D3DD] py-1 px-2 sm:py-2 sm:px-3 rounded-lg cursor-pointer"
                   onClick={handelVerfication}
                 >
                   تحقق
@@ -472,7 +528,7 @@ export default function ReservationButton() {
           {/* Step 2 */}
           {step == 2 && paymentStatus === "idle" && (
             <>
-              <DateTimePickerReserve<ReservationFormData>
+              <AdminDateTimePickerReserve<ReservationFormData>
                 formData={formData}
                 setFormData={setFormData}
                 type="reservation"
@@ -511,7 +567,6 @@ export default function ReservationButton() {
             </>
           )}
 
-          {/* Step 3 */}
           {/* Step 3 */}
           {step == 3 && paymentStatus === "idle" && (
             <div className="flex flex-col gap-6 mt-7">

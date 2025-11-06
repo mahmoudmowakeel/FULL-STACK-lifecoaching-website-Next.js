@@ -733,7 +733,7 @@ export default function ReservationButton({ text }: { text: string }) {
               )}
 
               {/* 🔹 استماع ولقاء */}
-              {typeData?.listen_meet_status && (
+              {typeData?.listen_meet_status ? (
                 <section className="flex flex-col gap-2">
                   <div className="flex justify-between w-full items-center">
                     <label className="flex items-center gap-7 cursor-pointer w-[75%] bg-[#214E78] px-6 py-2 rounded-2xl text-white">
@@ -762,13 +762,36 @@ export default function ReservationButton({ text }: { text: string }) {
                     {typeData?.listen_meet_text}
                   </p>
                 </section>
-              )}
-              {!typeData?.listen_status && !typeData?.listen_meet_status ? (
-                <span className="text-lg">
-                  لا توجد حاليا انواع حجوزات , حاول مره اخري لاحقا
-                </span>
               ) : (
-                ""
+                <section className="flex flex-col gap-2 cursor-not-allowed">
+                  <div className="flex justify-between w-full items-center">
+                    <label className="flex items-center gap-7 w-[75%] bg-gray-400 cursor-not-allowed px-6 py-2 rounded-2xl text-white">
+                      <input
+                        type="checkbox"
+                        disabled
+                        checked={formData.type === "inPerson"}
+                        onChange={() => handleCheckbox("inPerson")}
+                        className="hidden peer cursor-not-allowed"
+                      />
+                      <span className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-white peer-checked:bg-white transition-all">
+                        <span className="w-2.5 h-2.5 bg-gray-400 rounded-full opacity-0 peer-checked:opacity-100 transition-all"></span>
+                      </span>
+                      <span className="font-bold">
+                        {reservationT("listen_meet")}
+                      </span>
+                    </label>
+
+                    <span className="font-bold text-gray-400 flex items-center">
+                      <span className="text-white bg-gray-400 py-1 px-2 rounded-2xl ml-3 w-fit text-center appearance-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+                        {typeData?.listen_meet_price}
+                      </span>
+                      {reservationT("currency")}
+                    </span>
+                  </div>
+                  <p className="text-right text-sm w-[75%] text-gray-400 py-2 px-3 rounded-lg h-[5rem]">
+                    {typeData?.listen_meet_text}
+                  </p>
+                </section>
               )}
             </div>
             {message ? (

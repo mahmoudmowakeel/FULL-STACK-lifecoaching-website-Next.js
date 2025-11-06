@@ -229,7 +229,7 @@ export default function HomePage() {
 
         {/* (5) Footer */}
         <footer className="bg-[#214E78] w-full text-center py-1 flex items-center justify-center h-full mt-[0.7rem]">
-          <p className="text-[#A4D3DD] font-bold text-xs sm:text-xs">
+          <p className="text-white font-bold text-xs sm:text-xs">
             {t("footer")}
           </p>
         </footer>

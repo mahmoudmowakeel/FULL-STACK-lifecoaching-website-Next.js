@@ -24,6 +24,8 @@ export default function EditCustomerDataPage() {
   const [nameFilter, setNameFilter] = useState("");
   const [emailFilter, setEmailFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
+
   const filterRef = useRef<HTMLDivElement>(null);
 
   // ✅ Fetch data from API
@@ -74,9 +76,14 @@ export default function EditCustomerDataPage() {
           trial.date_time.toLowerCase().includes(dateFilter.toLowerCase())
       );
     }
+    if (phoneFilter.trim())
+      result = result.filter(
+        (t) =>
+          t.phone && t.phone.toLowerCase().includes(phoneFilter.toLowerCase())
+      );
 
     setFilteredTrials(result);
-  }, [nameFilter, emailFilter, dateFilter, freeTrials]);
+  }, [nameFilter, emailFilter, dateFilter, freeTrials, phoneFilter]);
 
   // ✅ Close filter when clicking outside
   useEffect(() => {
@@ -167,6 +174,18 @@ export default function EditCustomerDataPage() {
                       placeholder="ابحث بالتاريخ"
                     />
                   </div>
+                  <div>
+                    <label className="font-semibold text-xs">
+                      الهاتف / Phone
+                    </label>
+                    <input
+                      type="text"
+                      value={phoneFilter}
+                      onChange={(e) => setPhoneFilter(e.target.value)}
+                      className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
+                      placeholder="ابحث بالتاريخ"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-between mt-3">
@@ -209,15 +228,7 @@ export default function EditCustomerDataPage() {
               الوقت و التاريخ <br /> Date & Time
             </EditTable.TableHeader.TableCoulmn>
             <EditTable.TableHeader.TableCoulmn>
-              <NormalButton textColor="#FFFFFF" bgColor="#214E78">
-                PDF
-                <Image
-                  src="/Images/file-down.svg"
-                  width={20}
-                  height={20}
-                  alt="pdf"
-                />
-              </NormalButton>
+              <div></div>
             </EditTable.TableHeader.TableCoulmn>
           </EditTable.TableHeader>
 

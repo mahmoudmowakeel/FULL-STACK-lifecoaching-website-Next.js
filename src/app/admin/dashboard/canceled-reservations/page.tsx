@@ -4,7 +4,8 @@ import ContentContainer from "../_UI/ContentContainer";
 import ReservationsTable from "../_components/ReservationsTable";
 import Image from "next/image";
 import NormalButton from "../_UI/NormalButton";
-
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 export interface Reservation {
   id: number;
   name: string;
@@ -23,7 +24,9 @@ export interface Reservation {
 
 export default function CanceledReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [filteredReservations, setFilteredReservations] = useState<Reservation[]>([]);
+  const [filteredReservations, setFilteredReservations] = useState<
+    Reservation[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -31,7 +34,12 @@ export default function CanceledReservationsPage() {
   const [nameFilter, setNameFilter] = useState("");
   const [emailFilter, setEmailFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
+
   const filterRef = useRef<HTMLDivElement>(null);
+
+  // Selected reservations for PDF download
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   // ✅ Fetch data
   const fetchReservations = async () => {
@@ -83,14 +91,22 @@ export default function CanceledReservationsPage() {
           r.date_time.toLowerCase().includes(dateFilter.toLowerCase())
       );
     }
+    if (phoneFilter.trim())
+      result = result.filter(
+        (t) =>
+          t.phone && t.phone.toLowerCase().includes(phoneFilter.toLowerCase())
+      );
 
     setFilteredReservations(result);
-  }, [nameFilter, emailFilter, dateFilter, reservations]);
+  }, [nameFilter, emailFilter, dateFilter, reservations, phoneFilter]);
 
   // ✅ Close popup on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
         setShowFilter(false);
       }
     };
@@ -104,6 +120,84 @@ export default function CanceledReservationsPage() {
     setEmailFilter("");
     setDateFilter("");
     setFilteredReservations(reservations);
+  };
+
+  // Handle selection of individual row
+  const toggleRow = (id: number) => {
+    setSelectedIds((prevSelectedIds) =>
+      prevSelectedIds.includes(id)
+        ? prevSelectedIds.filter((selectedId) => selectedId !== id)
+        : [...prevSelectedIds, id]
+    );
+  };
+
+  // Select all rows
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredReservations.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredReservations.map((reservation) => reservation.id));
+    }
+  };
+
+  // Download selected rows as PDF
+  const downloadPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(18);
+    doc.text("Canceled Reservations Report", 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+
+    const selected = selectedIds.length
+      ? filteredReservations.filter((r) => selectedIds.includes(r.id))
+      : filteredReservations;
+
+    doc.text(`Total Records: ${selected.length}`, 14, 34);
+
+    const tableData = selected.map((r, i) => {
+      const dateStr = r.date_time
+        ? new Date(r.date_time).toISOString().slice(0, 16).replace("T", " ")
+        : "";
+      return [
+        i + 1,
+        r.name,
+        r.phone,
+        r.email,
+        dateStr,
+        r.type === "inPerson" ? "استماع ولقاء" : "استماع",
+        r.paymentMethod === "gateway"
+          ? "بوابة دفع"
+          : r.paymentMethod === "cash"
+          ? "نقدا"
+          : r.paymentMethod === "banktransfer"
+          ? "تحويل بنكي"
+          : "غير معروف",
+        r.invoice_number || "-",
+        r.invoice_pdf ? "Available" : "N/A",
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 40,
+      head: [
+        [
+          "#",
+          "Name",
+          "Phone",
+          "Email",
+          "Date & Time",
+          "Type",
+          "Payment",
+          "Invoice #",
+          "Invoice",
+        ],
+      ],
+      body: tableData,
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [164, 211, 221], textColor: [33, 78, 120] },
+    });
+
+    doc.save(`canceled-reservations-${Date.now()}.pdf`);
   };
 
   return (
@@ -130,14 +224,16 @@ export default function CanceledReservationsPage() {
 
             {/* === Filter Popup === */}
             {showFilter && (
-              <div className="absolute right-0 mt-2 bg-[#A4D3DD] text-[#214E78] rounded-xl shadow-lg p-4 w-64 z-50">
+              <div className="absolute left-0 mt-2 bg-[#A4D3DD] text-[#214E78] rounded-xl shadow-lg p-4 w-64 z-50">
                 <h3 className="text-sm font-bold mb-2 text-center">
                   تصفية النتائج / Filter
                 </h3>
 
                 <div className="flex flex-col gap-2 text-sm">
                   <div>
-                    <label className="font-semibold text-xs">الاسم / Name</label>
+                    <label className="font-semibold text-xs">
+                      الاسم / Name
+                    </label>
                     <input
                       type="text"
                       value={nameFilter}
@@ -168,6 +264,18 @@ export default function CanceledReservationsPage() {
                       type="text"
                       value={dateFilter}
                       onChange={(e) => setDateFilter(e.target.value)}
+                      className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
+                      placeholder="ابحث بالتاريخ"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-xs">
+                      الهاتف / Phone
+                    </label>
+                    <input
+                      type="text"
+                      value={phoneFilter}
+                      onChange={(e) => setPhoneFilter(e.target.value)}
                       className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
                       placeholder="ابحث بالتاريخ"
                     />
@@ -209,59 +317,14 @@ export default function CanceledReservationsPage() {
             </p>
           </div>
         ) : (
-          <ReservationsTable>
-            {/* === Table Header === */}
-            <ReservationsTable.TableHeader>
-              <ReservationsTable.TableHeader.TableCoulmn>#</ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                الاسم <br /> Name
-              </ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                رقم الهاتف <br /> Phone Number
-              </ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                البريد الالكتروني <br /> Email Address
-              </ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                الوقت و التاريخ <br /> Date & Time
-              </ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                استماع / استماع ولقاء <br /> Listen / Meet
-              </ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                طريقة الدفع <br /> Payment Method
-              </ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                رقم الفاتورة <br /> Invoice Number
-              </ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                الفاتورة <br /> Invoice
-              </ReservationsTable.TableHeader.TableCoulmn>
-              <ReservationsTable.TableHeader.TableCoulmn>
-                <NormalButton textColor="#FFFFFF" bgColor="#214E78">
-                  PDF
-                  <Image
-                    src="/Images/file-down.svg"
-                    width={20}
-                    height={20}
-                    alt="pdf"
-                  />
-                </NormalButton>
-              </ReservationsTable.TableHeader.TableCoulmn>
-            </ReservationsTable.TableHeader>
-
-            {/* === Table Content === */}
-            <ReservationsTable.TableContent>
-              {filteredReservations.map((r, index) => (
-                <ReservationsTable.TableContent.TableContentRow
-                  data={r}
-                  key={r.id}
-                  index={index}
-                  status="canceled"
-                ></ReservationsTable.TableContent.TableContentRow>
-              ))}
-            </ReservationsTable.TableContent>
-          </ReservationsTable>
+          <ReservationsTable
+            data={filteredReservations}
+            status="canceled"
+            selectedIds={selectedIds}
+            toggleRow={toggleRow}
+            toggleSelectAll={toggleSelectAll}
+            downloadPDF={downloadPDF}
+          />
         )}
       </ContentContainer>
     </div>

@@ -21,7 +21,7 @@ export default function HeaderBar() {
       <div className="text-center font-bold text-[#214E78]">
         <button
           onClick={handleLogout}
-          className="cursor-pointer hover:text-red-600 transition"
+          className="cursor-pointer hover:text-white transition"
         >
           خروج <br /> logout
         </button>

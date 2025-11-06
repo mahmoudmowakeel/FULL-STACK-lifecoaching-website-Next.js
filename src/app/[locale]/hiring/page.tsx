@@ -197,16 +197,16 @@ export default function HiringPage() {
         <p>{message}</p>
       </NotesModal>
 
-      <div className="w-full min-h-[100vh] mt-7 bg-[url('/Images/bg.jpg')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4">
+      <div className="w-full min-h-[100vh] mt-10 bg-[url('/Images/bg.jpg')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4">
         <div className="w-full sm:w-[90%] md:w-[70%] lg:w-[60%]">
           <h1 className="text-[#214E78] font-bold text-lg sm:text-xl text-center mb-3">
             {t("title")}
           </h1>
 
-          <div className="bg-[#A4D3DD] rounded-2xl">
+          <div className="bg-[#A4D3DD] h-[50%] rounded-2xl">
             <form
               onSubmit={handleSubmit}
-              className="backdrop-blur-sm p-5 sm:p-8 rounded-xl mx-auto text-[#214E78] font-semibold space-y-5"
+              className="backdrop-blur-sm p-5 sm:p-8 rounded-xl mx-auto text-[#214E78] font-semibold space-y-2"
             >
               {/* Name */}
               <div className="flex flex-col sm:flex-row justify-between items-center w-full sm:w-[80%] mx-auto gap-2">
@@ -358,6 +358,10 @@ export default function HiringPage() {
 
               {/* Message */}
               <div className="w-full sm:w-[80%] mx-auto">
+                <label htmlFor="message" className="text-sm mb-4">
+                  هذه المساحه مخصصه لك .. شاركنا سيرتك الذاتيه كما تراها انت و
+                  بأسلوبك الخاص
+                </label>
                 <textarea
                   name="message"
                   value={formData.message}

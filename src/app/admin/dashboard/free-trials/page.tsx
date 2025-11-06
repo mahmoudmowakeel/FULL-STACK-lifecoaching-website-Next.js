@@ -6,6 +6,11 @@ import FreeTrialsTable from "../_components/FreeTrialsTable";
 import { useEffect, useState, useRef } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { Modal } from "@/app/[locale]/components/Modal";
+import { AdminModal } from "../_components/ModalAdmin";
+import DateTimePicker from "@/app/[locale]/components/DateTimePicker";
+import { FreeTrialFormData } from "@/lib/types/freeTrials";
+import AdminFreeDateTimePicker from "../_components/FreePickForAdmin";
 
 export interface FreeTrial {
   id: number;
@@ -19,84 +24,115 @@ export interface FreeTrial {
 export default function FreeTrialsPage() {
   const [freeTrials, setFreeTrials] = useState<FreeTrial[]>([]);
   const [filteredTrials, setFilteredTrials] = useState<FreeTrial[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔍 Filter UI states
   const [showFilter, setShowFilter] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [emailFilter, setEmailFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // ✅ PDF Download Function
+  // ================= Modal & Editing Logic =================
+  const [editingTrialId, setEditingTrialId] = useState<number | null>(null);
+  const [tempDateTime, setTempDateTime] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [originalDateTime, setOriginalDateTime] = useState<string>("");
+  const [formData, setFormData] = useState<FreeTrialFormData>({
+    name: "", // Always required field
+    phone: "", // Optional, can be an empty string or null
+    email: "", // Optional, can be an empty string or null
+    date_time: null, // Optional, will use the current timestamp if not provided
+    status: "pending", // Optional, default will be 'pending' in the DB
+  });
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState<string>("");
+
+  const openModalForTrial = (trialId: number, currentDate: string | null) => {
+    setEditingTrialId(trialId);
+    setTempDateTime(currentDate || "");
+    setOriginalDateTime(currentDate || "");
+    setIsModalOpen(true);
+  };
+
+  const handleModalDone = () => {
+    if (editingTrialId !== null) {
+      setFreeTrials((prev) =>
+        prev.map((t) =>
+          t.id === editingTrialId ? { ...t, date_time: tempDateTime } : t
+        )
+      );
+    }
+    setIsModalOpen(false);
+  };
+
+  const handleModalCancel = () => {
+    if (editingTrialId !== null) {
+      setFreeTrials((prev) =>
+        prev.map((t) =>
+          t.id === editingTrialId ? { ...t, date_time: originalDateTime } : t
+        )
+      );
+    }
+    setIsModalOpen(false);
+  };
+  // ==========================================================
+
+  const toggleRow = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredTrials.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredTrials.map((t) => t.id));
+    }
+  };
+
   const downloadPDF = () => {
     const doc = new jsPDF();
-
-    // Add title
     doc.setFontSize(18);
     doc.text("Free Trials Report", 14, 20);
-
-    // Add date
     doc.setFontSize(11);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
     doc.text(`Status: Pending`, 14, 34);
-    doc.text(`Total Records: ${filteredTrials.length}`, 14, 40);
 
-    // Prepare table data
-    const tableData = filteredTrials.map((item, index) => {
-      // Format date/time
-      let formattedDateTime = "";
-      if (item.date_time) {
-        const date = new Date(item.date_time);
-        formattedDateTime = date.toISOString().slice(0, 16).replace("T", " ");
-      }
+    const selected = selectedIds.length
+      ? filteredTrials.filter((t) => selectedIds.includes(t.id))
+      : filteredTrials;
 
-      return [
-        index + 1,
-        item.name || "",
-        item.phone || "",
-        item.email || "",
-        formattedDateTime,
-      ];
+    doc.text(`Total Records: ${selected.length}`, 14, 40);
+
+    const tableData = selected.map((item, index) => {
+      const dateStr = item.date_time
+        ? new Date(item.date_time).toISOString().slice(0, 16).replace("T", " ")
+        : "";
+      return [index + 1, item.name, item.phone, item.email, dateStr];
     });
 
-    // Generate table
     autoTable(doc, {
       startY: 46,
       head: [["#", "Name", "Phone", "Email", "Date & Time"]],
       body: tableData,
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-      },
+      styles: { fontSize: 10, cellPadding: 3 },
       headStyles: {
-        fillColor: [164, 211, 221], // #A4D3DD
-        textColor: [33, 78, 120], // #214E78
+        fillColor: [164, 211, 221],
+        textColor: [33, 78, 120],
         fontStyle: "bold",
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245],
-      },
-      columnStyles: {
-        0: { cellWidth: 15 }, // Index
-        1: { cellWidth: 40 }, // Name
-        2: { cellWidth: 35 }, // Phone
-        3: { cellWidth: 50 }, // Email
-        4: { cellWidth: 40 }, // Date & Time
       },
     });
 
-    // Save the PDF
-    const fileName = `free-trials-pending-${new Date().getTime()}.pdf`;
-    doc.save(fileName);
+    doc.save(`free-trials-pending-${Date.now()}.pdf`);
   };
 
-  // ✅ Fetch data
   const fetchFreeTrials = async () => {
     try {
       const res = await fetch("/api/get-free-trials");
       const data = await res.json();
-
       if (data.success) {
         const filteredData = data.data
           .filter((trial: FreeTrial) => trial.status === "pending")
@@ -104,8 +140,6 @@ export default function FreeTrialsPage() {
 
         setFreeTrials(filteredData);
         setFilteredTrials(filteredData);
-      } else {
-        console.error("❌ Failed to fetch free trials:", data.error);
       }
     } catch (error) {
       console.error("❌ Network error:", error);
@@ -118,35 +152,37 @@ export default function FreeTrialsPage() {
     fetchFreeTrials();
   }, []);
 
-  // ✅ Filter logic
   useEffect(() => {
     let result = freeTrials;
-
-    if (nameFilter.trim()) {
+    if (nameFilter.trim())
       result = result.filter((t) =>
         t.name.toLowerCase().includes(nameFilter.toLowerCase())
       );
-    }
-    if (emailFilter.trim()) {
+    if (emailFilter.trim())
       result = result.filter((t) =>
         t.email.toLowerCase().includes(emailFilter.toLowerCase())
       );
-    }
-    if (dateFilter.trim()) {
+    if (dateFilter.trim())
       result = result.filter(
         (t) =>
           t.date_time &&
           t.date_time.toLowerCase().includes(dateFilter.toLowerCase())
       );
-    }
-
+    if (phoneFilter.trim())
+      result = result.filter(
+        (t) =>
+          t.phone && t.phone.toLowerCase().includes(phoneFilter.toLowerCase())
+      );
     setFilteredTrials(result);
-  }, [nameFilter, emailFilter, dateFilter, freeTrials]);
+    setSelectedIds([]);
+  }, [nameFilter, emailFilter, dateFilter, freeTrials, phoneFilter]);
 
-  // ✅ Outside click closes filter
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
         setShowFilter(false);
       }
     };
@@ -154,7 +190,6 @@ export default function FreeTrialsPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Mark as completed
   const handleComplete = async (id: number) => {
     try {
       const res = await fetch("/api/update-free-trial", {
@@ -166,18 +201,76 @@ export default function FreeTrialsPage() {
       if (data.success) {
         setFreeTrials((prev) => prev.filter((t) => t.id !== id));
         setFilteredTrials((prev) => prev.filter((t) => t.id !== id));
+        setSelectedIds((prev) => prev.filter((x) => x !== id));
+      }
+    } catch (error) {
+      console.error("❌ Error updating status:", error);
+    }
+  };
+  const handleSave = async (id: number) => {
+    let formattedDate = formData.date_time;
+    if (formattedDate) {
+      const date = new Date(formattedDate);
+      formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
+        .getHours()
+        .toString()
+        .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+    }
+    try {
+      const res = await fetch("/api/update-free-trial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, date_time: formattedDate, status: "pending" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFreeTrials((prev) => prev.filter((t) => t.id !== id));
+        setFilteredTrials((prev) => prev.filter((t) => t.id !== id));
+        setSelectedIds((prev) => prev.filter((x) => x !== id));
+      }
+      const selectedDateISO = selectedDate
+        ? new Date(
+            selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+          )
+            .toISOString()
+            .split("T")[0]
+        : "";
+
+      const readySlot = [
+        {
+          date: selectedDateISO,
+          time_slot: selectedTime,
+          status: "booked",
+        },
+      ];
+      const updateSlotResponse = await fetch("/api/update_freeTrial_calendar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          slots: readySlot,
+        }),
+      });
+
+      const updateSlotData = await updateSlotResponse.json();
+      if (!updateSlotResponse.ok || !updateSlotData.success) {
+        console.error("⚠️ Calendar update failed:", updateSlotData.error);
+        throw new Error("فشل في تحديث التقويم.");
       }
     } catch (error) {
       console.error("❌ Error updating status:", error);
     }
   };
 
-  // ✅ Reset filters
   const clearFilters = () => {
     setNameFilter("");
     setEmailFilter("");
     setDateFilter("");
     setFilteredTrials(freeTrials);
+    setSelectedIds([]);
   };
 
   return (
@@ -186,152 +279,132 @@ export default function FreeTrialsPage() {
         color="rgba(33, 78, 120, 0.7)"
         title="التجارب المجانيه / Free Trials"
       >
-        {/* === Always-visible Funnel Icon === */}
-        <div className="relative flex justify-end pr-4 mb-2">
-          <div className="relative" ref={filterRef}>
-            <button
-              onClick={() => setShowFilter((prev) => !prev)}
-              className="focus:outline-none"
-            >
-              <Image
-                src="/Images/funnel.svg"
-                width={24}
-                height={24}
-                className="inline-block text-[#A4D3DD]"
-                alt="funnel"
-              />
-            </button>
-
-            {/* === Floating Filter Box === */}
-            {showFilter && (
-              <div className="absolute left-0 mt-2 bg-[#A4D3DD] text-[#214E78] rounded-xl shadow-lg p-4 w-64 z-50">
-                <h3 className="text-sm font-bold mb-2 text-center">
-                  تصفية النتائج / Filter
-                </h3>
-
-                <div className="flex flex-col gap-2 text-sm">
-                  <div>
-                    <label className="font-semibold text-xs">الاسم / Name</label>
-                    <input
-                      type="text"
-                      value={nameFilter}
-                      onChange={(e) => setNameFilter(e.target.value)}
-                      className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
-                      placeholder="ابحث بالاسم"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold text-xs">البريد الإلكتروني / Email</label>
-                    <input
-                      type="email"
-                      value={emailFilter}
-                      onChange={(e) => setEmailFilter(e.target.value)}
-                      className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
-                      placeholder="ابحث بالبريد"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold text-xs">
-                      الوقت و التاريخ / Date
-                    </label>
-                    <input
-                      type="text"
-                      value={dateFilter}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                      className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
-                      placeholder="ابحث بالتاريخ"
-                    />
-                  </div>
+        {/* === Filter === */}
+        <div className="relative flex justify-end pr-4 mb-2" ref={filterRef}>
+          <button onClick={() => setShowFilter((p) => !p)}>
+            <Image
+              src="/Images/funnel.svg"
+              width={24}
+              height={24}
+              alt="funnel"
+            />
+          </button>
+          {showFilter && (
+            <div className="absolute left-0 mt-2 bg-[#A4D3DD] text-[#214E78] rounded-xl shadow-lg p-4 w-64 z-50">
+              <h3 className="text-sm font-bold mb-2 text-center">
+                تصفية النتائج / Filter
+              </h3>
+              <div className="flex flex-col gap-2 text-sm">
+                <div>
+                  <label className="font-semibold text-xs">الاسم / Name</label>
+                  <input
+                    type="text"
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
+                    placeholder="ابحث بالاسم"
+                  />
                 </div>
 
-                <div className="flex justify-between mt-3">
-                  <NormalButton
-                    bgColor="#214E78"
-                    textColor="#FFFFFF"
-                    onClick={() => setShowFilter(false)}
-                  >
-                    اغلاق <br /> Close
-                  </NormalButton>
-                  <NormalButton
-                    bgColor="#FFFFFF"
-                    textColor="#214E78"
-                    onClick={clearFilters}
-                  >
-                    مسح <br /> Clear
-                  </NormalButton>
+                <div>
+                  <label className="font-semibold text-xs">
+                    البريد الإلكتروني / Email
+                  </label>
+                  <input
+                    type="email"
+                    value={emailFilter}
+                    onChange={(e) => setEmailFilter(e.target.value)}
+                    className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
+                    placeholder="ابحث بالبريد"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-semibold text-xs">
+                    التاريخ / Date
+                  </label>
+                  <input
+                    type="text"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
+                    placeholder="ابحث بالتاريخ"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-xs">
+                    الهاتف / Phone
+                  </label>
+                  <input
+                    type="text"
+                    value={phoneFilter}
+                    onChange={(e) => setPhoneFilter(e.target.value)}
+                    className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
+                    placeholder="ابحث بالتاريخ"
+                  />
                 </div>
               </div>
-            )}
-          </div>
+              <div className="flex justify-between mt-3">
+                <NormalButton
+                  bgColor="#214E78"
+                  textColor="#FFFFFF"
+                  onClick={() => setShowFilter(false)}
+                >
+                  اغلاق <br /> Close
+                </NormalButton>
+                <NormalButton
+                  bgColor="#FFFFFF"
+                  textColor="#214E78"
+                  onClick={clearFilters}
+                >
+                  مسح <br /> Clear
+                </NormalButton>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* === Table Section === */}
+        {/* === Table === */}
         {loading ? (
-          <div className="w-full text-center">
-            <p className="text-white w-full p-5 text-2xl mx-auto text-center">
-              جاري تحميل البيانات ...
-            </p>
-          </div>
+          <p className="text-white text-center p-5 text-2xl">
+            جاري تحميل البيانات ...
+          </p>
         ) : filteredTrials.length === 0 ? (
-          <div className="w-full text-center">
-            <p className="text-white w-full p-5 text-2xl mx-auto text-center">
-              لا توجد نتائج تطابق الفلترة الحالية
-            </p>
-          </div>
+          <p className="text-white text-center p-5 text-2xl">
+            لا توجد نتائج تطابق الفلترة الحالية
+          </p>
         ) : (
-          <FreeTrialsTable>
-            <FreeTrialsTable.TableHeader>
-              <FreeTrialsTable.TableHeader.TableCoulmn>
-                #
-              </FreeTrialsTable.TableHeader.TableCoulmn>
-              <FreeTrialsTable.TableHeader.TableCoulmn>
-                الاسم <br /> Name
-              </FreeTrialsTable.TableHeader.TableCoulmn>
-              <FreeTrialsTable.TableHeader.TableCoulmn>
-                رقم الهاتف <br /> Phone
-              </FreeTrialsTable.TableHeader.TableCoulmn>
-              <FreeTrialsTable.TableHeader.TableCoulmn>
-                البريد الالكتروني <br /> Email
-              </FreeTrialsTable.TableHeader.TableCoulmn>
-              <FreeTrialsTable.TableHeader.TableCoulmn>
-                الوقت و التاريخ <br /> Date & Time
-              </FreeTrialsTable.TableHeader.TableCoulmn>
-              <FreeTrialsTable.TableHeader.TableCoulmn>
-                <NormalButton 
-                  textColor="#FFFFFF" 
-                  bgColor="#214E78"
-                  onClick={downloadPDF}
-                >
-                  PDF
-                  <Image
-                    src="/Images/file-down.svg"
-                    width={20}
-                    height={20}
-                    alt="pdf"
-                  />
-                </NormalButton>
-              </FreeTrialsTable.TableHeader.TableCoulmn>
-            </FreeTrialsTable.TableHeader>
-
-            <FreeTrialsTable.TableContent>
-              {filteredTrials.map((trial, index) => (
-                <FreeTrialsTable.TableContent.TableContentRow
-                  data={trial}
-                  key={trial.id}
-                  index={index}
-                >
-                  <NormalButton
-                    bgColor="#FFFFFF"
-                    textColor="#214E78"
-                    onClick={() => handleComplete(trial.id)}
-                  >
-                    اتمام <br /> Complete
-                  </NormalButton>
-                </FreeTrialsTable.TableContent.TableContentRow>
-              ))}
-            </FreeTrialsTable.TableContent>
-          </FreeTrialsTable>
+          <FreeTrialsTable
+            data={filteredTrials}
+            selectedIds={selectedIds}
+            toggleRow={toggleRow}
+            toggleSelectAll={toggleSelectAll}
+            handleComplete={handleComplete} // must exist!
+            downloadPDF={downloadPDF}
+            openModalForTrial={openModalForTrial} // NEW PROP
+            status="pending"
+            handleSave={handleSave}
+          />
         )}
+
+        {/* === Modal for Date/Time Picking === */}
+        <AdminModal isOpen={isModalOpen} onClose={handleModalCancel}>
+          <AdminFreeDateTimePicker<FreeTrialFormData>
+            formData={formData}
+            setFormData={setFormData}
+            type="free_trial"
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedTime={selectedTime}
+            setSelectedTime={setSelectedTime}
+          />
+          <button
+            className="mt-4 w-full bg-[#214E78] text-white p-2 rounded-md"
+            onClick={handleModalDone}
+          >
+            Done
+          </button>
+        </AdminModal>
       </ContentContainer>
     </div>
   );

@@ -7,7 +7,6 @@ import { Sun, Moon } from "lucide-react";
 import { FreeTrialFormData, ReservationFormData } from "@/lib/types/freeTrials";
 import { json } from "stream/consumers";
 
-import { useLocale } from "next-intl";
 
 type FormTypes = FreeTrialFormData | ReservationFormData;
 
@@ -17,7 +16,7 @@ interface CalendarSlot {
   status: "available" | "booked" | "closed";
 }
 
-interface DateTimePickerProps<T extends FormTypes> {
+export interface DateTimePickerProps<T extends FormTypes> {
   formData: T;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
   type: string;
@@ -39,7 +38,7 @@ type ElementType = {
   created_at: string;
 };
 
-export default function DateTimePickerReserve<T extends FormTypes>({
+export default function AdminDateTimePickerReserve<T extends FormTypes>({
   formData,
   setFormData,
   type,
@@ -56,7 +55,6 @@ export default function DateTimePickerReserve<T extends FormTypes>({
   const [notes, setNotes] = useState<{
     no_dates: string;
   }>();
-  const locale = useLocale();
 
   // ✅ Fetch calendar data from API
   useEffect(() => {
@@ -92,7 +90,7 @@ export default function DateTimePickerReserve<T extends FormTypes>({
         );
 
         setNotes({
-          no_dates: locale == "ar" ? no_dates?.text_ar : no_dates?.text_en,
+          no_dates:no_dates?.text_ar,
         });
       } catch (error) {
         return false;

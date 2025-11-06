@@ -24,13 +24,13 @@ export default function LanguageToggle() {
   const isEnglishActive = currentLocale === 'en';
 
   return (
-    <span className="flex bg-[#C3C3C3] rounded-2xl w-[5.2rem] h-[1.6rem] justify-between items-center text-[0.8rem] font-medium text-center">
+    <span className="flex bg-[#a4d3dd] rounded-2xl w-[5.2rem] h-[1.6rem] justify-between items-center text-[0.8rem] font-medium text-center">
       {/* Arabic Button */}
       <div 
         className={`w-full h-full flex items-center justify-center rounded-2xl cursor-pointer ${
           isArabicActive 
             ? 'bg-[#214E78] text-white'  // Active styles
-            : 'hover:text-white'     // Hover styles
+            : 'hover:text-white text-[#214E78]'     // Hover styles
         }`}
         onClick={() => switchLanguage('ar')}
       >
@@ -42,7 +42,7 @@ export default function LanguageToggle() {
         className={`w-full h-full flex items-center justify-center rounded-2xl cursor-pointer ${
           isEnglishActive 
             ? 'bg-[#214E78] text-white'  // Active styles
-            : 'hover:text-white'     // Hover styles
+            : 'hover:text-white text-[#214E78] '     // Hover styles
         }`}
         onClick={() => switchLanguage('en')}
       >

@@ -407,7 +407,7 @@ export default function FreeTrialButton({ text }: { text: string }) {
                 placeholder={freeTrialT("name_place")}
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full sm:w-[70%] rounded-md px-3 py-2 sm:py-3 focus:outline-none placeholder:text-[#a4d3dd9d] placeholder:text-sm text-lg bg-[#214E78] text-center text-white font-medium"
+                className="w-full sm:w-[70%] rounded-md px-3 py-2 sm:py-1 focus:outline-none placeholder:text-[#a4d3dd9d] placeholder:text-sm text-lg bg-[#214E78] text-center text-white font-medium"
               />
             </div>
 
@@ -513,7 +513,7 @@ export default function FreeTrialButton({ text }: { text: string }) {
                 placeholder={freeTrialT("email_place")}
                 value={formData.email || ""}
                 onChange={handleChange}
-                className="w-full sm:w-[70%] rounded-md px-3 py-2 sm:py-3 focus:outline-none placeholder:text-[#a4d3dd9d] placeholder:text-sm text-sm bg-[#214E78] text-center text-white font-medium"
+                className="w-full sm:w-[70%] rounded-md px-3 text-sm py-1 sm:py-1 focus:outline-none placeholder:text-[#a4d3dd9d] placeholder:text-sm md:text-lg bg-[#214E78] text-center text-white font-medium"
               />
             </div>
 

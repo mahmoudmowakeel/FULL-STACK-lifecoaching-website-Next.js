@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import ContentContainer from "../_UI/ContentContainer";
-import ApplicationsTable from "../_components/ApplicationTable";
 import NormalButton from "../_UI/NormalButton";
 import Image from "next/image";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import ApplicationsTable from "../_components/ApplicationTable";
 
 export interface HiringApplication {
   id: number;
@@ -17,15 +19,22 @@ export interface HiringApplication {
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<HiringApplication[]>([]);
-  const [filteredApplications, setFilteredApplications] = useState<HiringApplication[]>([]);
+  const [filteredApplications, setFilteredApplications] = useState<
+    HiringApplication[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+
+  // ✅ toggle logic
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   // Filters
   const [showFilter, setShowFilter] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [emailFilter, setEmailFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
+
   const filterRef = useRef<HTMLDivElement>(null);
 
   // ✅ Fetch pending applications
@@ -75,14 +84,22 @@ export default function ApplicationsPage() {
         a.created_at.toLowerCase().includes(dateFilter.toLowerCase())
       );
     }
+    if (phoneFilter.trim())
+      result = result.filter(
+        (t) =>
+          t.phone && t.phone.toLowerCase().includes(phoneFilter.toLowerCase())
+      );
 
     setFilteredApplications(result);
-  }, [nameFilter, emailFilter, dateFilter, applications]);
+  }, [nameFilter, emailFilter, dateFilter, applications, phoneFilter]);
 
   // ✅ Click outside closes popup
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
         setShowFilter(false);
       }
     };
@@ -98,7 +115,7 @@ export default function ApplicationsPage() {
     setFilteredApplications(applications);
   };
 
-  // ✅ Handle delete / update actions
+  // ✅ Handle delete / update actions (same as before)
   const handleAction = async (
     id: number,
     action: "delete" | "update",
@@ -128,13 +145,64 @@ export default function ApplicationsPage() {
     }
   };
 
+  // ✅ Toggle logic
+  const toggleRow = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredApplications.length) setSelectedIds([]);
+    else setSelectedIds(filteredApplications.map((a) => a.id));
+  };
+
+  // ✅ PDF Download
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Hiring Applications Report", 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+    doc.text(`Status: Pending`, 14, 34);
+
+    const selected = selectedIds.length
+      ? filteredApplications.filter((a) => selectedIds.includes(a.id))
+      : filteredApplications;
+
+    doc.text(`Total Records: ${selected.length}`, 14, 40);
+
+    const tableData = selected.map((a, i) => [
+      i + 1,
+      a.name,
+      a.phone,
+      a.email,
+      a.message,
+      new Date(a.created_at).toLocaleString(),
+    ]);
+
+    autoTable(doc, {
+      startY: 46,
+      head: [["#", "Name", "Phone", "Email", "Message", "Date"]],
+      body: tableData,
+      styles: { fontSize: 10 },
+      headStyles: {
+        fillColor: [164, 211, 221],
+        textColor: [33, 78, 120],
+        fontStyle: "bold",
+      },
+    });
+
+    doc.save(`applications-pending-${Date.now()}.pdf`);
+  };
+
   return (
     <div dir="rtl" className="relative">
       <ContentContainer
         color="rgba(33, 78, 120, 0.7)"
         title="طلبات التوظيف / Applications"
       >
-        {/* === Funnel Icon & Filter Popup === */}
+        {/* === Filter Popup === */}
         <div className="relative flex justify-end pr-4 mb-2">
           <div className="relative" ref={filterRef}>
             <button
@@ -158,7 +226,9 @@ export default function ApplicationsPage() {
 
                 <div className="flex flex-col gap-2 text-sm">
                   <div>
-                    <label className="font-semibold text-xs">الاسم / Name</label>
+                    <label className="font-semibold text-xs">
+                      الاسم / Name
+                    </label>
                     <input
                       type="text"
                       value={nameFilter}
@@ -193,6 +263,18 @@ export default function ApplicationsPage() {
                       placeholder="ابحث بالتاريخ"
                     />
                   </div>
+                  <div>
+                    <label className="font-semibold text-xs">
+                      الهاتف / Phone
+                    </label>
+                    <input
+                      type="text"
+                      value={phoneFilter}
+                      onChange={(e) => setPhoneFilter(e.target.value)}
+                      className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
+                      placeholder="ابحث بالتاريخ"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-between mt-3">
@@ -216,78 +298,43 @@ export default function ApplicationsPage() {
           </div>
         </div>
 
-        {/* === Applications Table === */}
-        <ApplicationsTable>
-          <ApplicationsTable.TableHeader>
-            <ApplicationsTable.TableHeader.TableCoulmn>#</ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              الاسم <br /> Name
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              رقم الهاتف <br /> Phone Number
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              البريد الالكتروني <br /> Email Address
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              الوقت و التاريخ <br /> Date & Time
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              المفكره <br /> Note
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              <NormalButton textColor="#FFFFFF" bgColor="#214E78">
-                PDF
-                <Image
-                  src="/Images/file-down.svg"
-                  width={20}
-                  height={20}
-                  alt="pdf"
-                />
-              </NormalButton>
-            </ApplicationsTable.TableHeader.TableCoulmn>
-          </ApplicationsTable.TableHeader>
-
-          <ApplicationsTable.TableContent>
-            {loading && (
-              <p className="text-white text-center py-4">
-                جاري تحميل البيانات ...
-              </p>
-            )}
-
-            {!loading && filteredApplications.length === 0 && (
-              <p className="text-white text-center py-4">
-                لا توجد نتائج تطابق الفلترة الحالية
-              </p>
-            )}
-
-            {filteredApplications.map((app) => (
-              <ApplicationsTable.TableContent.TableContentRow
-                data={app}
-                key={app.id}
+        {/* ✅ Applications Table with Toggle + PDF */}
+        <ApplicationsTable data={filteredApplications} status="pending">
+          {filteredApplications.map((app, index) => (
+            <div key={app.id} className="flex gap-2 justify-center">
+              <button
+                className="bg-[#214E78] text-white px-4 text-[10px] rounded-2xl w-full disabled:opacity-50 cursor-pointer"
+                disabled={actionLoading === app.id}
+                onClick={() => handleAction(app.id, "delete")}
               >
-                <NormalButton
-                  bgColor="#214E78"
-                  textColor="#FFFFFF"
-                  disabled={actionLoading === app.id}
-                  onClick={() => handleAction(app.id, "delete")}
-                >
-                  {actionLoading === app.id ? "..." : "حذف"} <br />
-                  {actionLoading === app.id ? "" : "Remove"}
-                </NormalButton>
+                {actionLoading === app.id ? (
+                  "..."
+                ) : (
+                  <>
+                    حذف <br />
+                    <span className="text-[10px] font-light mb-[9px] inline">
+                      Remove
+                    </span>
+                  </>
+                )}
+              </button>
 
-                <NormalButton
-                  bgColor="#FFFFFF"
-                  textColor="#214E78"
-                  disabled={actionLoading === app.id}
-                  onClick={() => handleAction(app.id, "update", "completed")}
-                >
-                  {actionLoading === app.id ? "..." : "تواصل"} <br />
-                  {actionLoading === app.id ? "" : "Contact"}
-                </NormalButton>
-              </ApplicationsTable.TableContent.TableContentRow>
-            ))}
-          </ApplicationsTable.TableContent>
+              <button
+                className="bg-white text-[#214E78]  text-[10px]  px-4 rounded-2xl w-full disabled:opacity-50 cursor-pointer"
+                disabled={actionLoading === app.id}
+                onClick={() => handleAction(app.id, "update", "completed")}
+              >
+                {actionLoading === app.id ? (
+                  "..."
+                ) : (
+                  <>
+                    تواصل <br />
+                    <span className="text-[10px] font-light">Contact</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ))}
         </ApplicationsTable>
       </ContentContainer>
     </div>

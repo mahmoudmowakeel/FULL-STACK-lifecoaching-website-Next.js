@@ -44,14 +44,22 @@ export default function CalendarReservationsPage() {
           </section>
           {/* Buttons */}
           <div className="mt-6 flex justify-center gap-2 w-[50%] mx-auto">
-
             <button
               onClick={handleSave}
               disabled={saving}
-                className="px-6 py-1 rounded-3xl bg-[#214E78] text-white font-bold cursor-pointer"
+              className="px-6 py-1 rounded-3xl bg-[#214E78] text-white font-bold cursor-pointer"
               type="button"
             >
               {saving ? "جارٍ الحفظ..." : "حفظ / Save"}
+            </button>
+            {/* ✅ Cancel button now discards all changes */}
+            <button
+              onClick={handleReset}
+              disabled={saving}
+              className="px-6 py-1 rounded-3xl bg-white text-[#214E78] font-bold cursor-pointer"
+              type="button"
+            >
+              الغاء / Cancel
             </button>
           </div>
         </div>

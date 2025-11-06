@@ -21,7 +21,7 @@ export default function NormalButton({
           backgroundColor: bgColor,
           color: textColor || "#FFFFFF",
         }}
-        className={`px-3 py-1 rounded-2xl flex gap-2 items-center text-[8px] cursor-pointer ${
+        className={`px-3 py-1 rounded-2xl flex gap-2 items-center text-[9px] cursor-pointer ${
           disabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
         }`}
       >

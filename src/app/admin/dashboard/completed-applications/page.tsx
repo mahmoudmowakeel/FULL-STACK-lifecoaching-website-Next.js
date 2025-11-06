@@ -22,11 +22,12 @@ export default function CompletedApplicationsPage() {
   >([]);
   const [loading, setLoading] = useState(true);
 
-  // Filter states
+  // Filters
   const [showFilter, setShowFilter] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [emailFilter, setEmailFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
 
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +57,7 @@ export default function CompletedApplicationsPage() {
     fetchApplications();
   }, []);
 
-  // ✅ Apply filters whenever they change
+  // ✅ Apply filters
   useEffect(() => {
     let result = applications;
 
@@ -77,9 +78,14 @@ export default function CompletedApplicationsPage() {
         a.created_at.toLowerCase().includes(dateFilter.toLowerCase())
       );
     }
+    if (phoneFilter.trim())
+      result = result.filter(
+        (t) =>
+          t.phone && t.phone.toLowerCase().includes(phoneFilter.toLowerCase())
+      );
 
     setFilteredApplications(result);
-  }, [nameFilter, emailFilter, dateFilter, applications]);
+  }, [nameFilter, emailFilter, dateFilter, applications, phoneFilter]);
 
   // ✅ Close filter when clicking outside
   useEffect(() => {
@@ -170,6 +176,18 @@ export default function CompletedApplicationsPage() {
                       placeholder="ابحث بالتاريخ"
                     />
                   </div>
+                  <div>
+                    <label className="font-semibold text-xs">
+                      الهاتف / Phone
+                    </label>
+                    <input
+                      type="text"
+                      value={phoneFilter}
+                      onChange={(e) => setPhoneFilter(e.target.value)}
+                      className="w-full p-1 rounded-md text-[#214E78] focus:outline-none text-xs"
+                      placeholder="ابحث بالتاريخ"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-between mt-3">
@@ -194,62 +212,7 @@ export default function CompletedApplicationsPage() {
         </div>
 
         {/* === Applications Table === */}
-        <ApplicationsTable>
-          <ApplicationsTable.TableHeader>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              #
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              الاسم <br /> Name
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              رقم الهاتف <br /> Phone Number
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              البريد الإلكتروني <br /> Email Address
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              الوقت و التاريخ <br /> Date & Time
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              المفكره <br /> Note
-            </ApplicationsTable.TableHeader.TableCoulmn>
-            <ApplicationsTable.TableHeader.TableCoulmn>
-              <NormalButton textColor="#FFFFFF" bgColor="#214E78">
-                PDF
-                <Image
-                  src="/Images/file-down.svg"
-                  width={20}
-                  height={20}
-                  alt="pdf"
-                />
-              </NormalButton>
-            </ApplicationsTable.TableHeader.TableCoulmn>
-          </ApplicationsTable.TableHeader>
-
-          <ApplicationsTable.TableContent>
-            {loading && (
-              <tr>
-                <td colSpan={5}>
-                  <span> جاري تحميل البيانات ...</span>
-                </td>
-              </tr>
-            )}
-
-            {!loading && filteredApplications.length === 0 && (
-              <p className="text-white text-center py-4">
-                لا توجد نتائج تطابق الفلترة الحالية
-              </p>
-            )}
-
-            {filteredApplications.map((app, index) => (
-              <ApplicationsTable.TableContent.TableContentRow
-                data={app}
-                key={index}
-              ></ApplicationsTable.TableContent.TableContentRow>
-            ))}
-          </ApplicationsTable.TableContent>
-        </ApplicationsTable>
+        <ApplicationsTable data={filteredApplications} status="completed" />
       </ContentContainer>
     </div>
   );

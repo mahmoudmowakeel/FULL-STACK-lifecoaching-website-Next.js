@@ -65,7 +65,7 @@ export default function ListenMeetPage() {
       const res = await fetch("/api/update-listening-options", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, listen_status: true }),
       });
 
       const json: ApiResponse<null> = await res.json();
@@ -97,17 +97,6 @@ export default function ListenMeetPage() {
               <section className="flex flex-col gap-2">
                 <div className="flex justify-between w-full items-center">
                   <label className="flex items-center gap-7 cursor-pointer w-[75%] bg-[#214E78] px-6 py-2 rounded-2xl text-white">
-                    <input
-                      type="checkbox"
-                      checked={data?.listen_status}
-                      onChange={(e) =>
-                        handleChange("listen_status", e.target.checked)
-                      }
-                      className="hidden peer"
-                    />
-                    <span className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-white peer-checked:bg-white transition-all">
-                      <span className="w-2.5 h-2.5 bg-[#214E78] rounded-full opacity-0 peer-checked:opacity-100 transition-all"></span>
-                    </span>
                     <span className="font-bold">استماع / Listen</span>
                   </label>
 

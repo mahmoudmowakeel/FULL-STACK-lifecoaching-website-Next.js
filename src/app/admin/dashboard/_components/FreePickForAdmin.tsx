@@ -5,9 +5,9 @@ import { DayPicker } from "react-day-picker";
 import { ar } from "date-fns/locale";
 import { Sun, Moon } from "lucide-react";
 import { FreeTrialFormData, ReservationFormData } from "@/lib/types/freeTrials";
-import { json } from "stream/consumers";
-
 import { useLocale } from "next-intl";
+
+import { json } from "stream/consumers";
 
 type FormTypes = FreeTrialFormData | ReservationFormData;
 
@@ -21,12 +21,13 @@ interface DateTimePickerProps<T extends FormTypes> {
   formData: T;
   setFormData: React.Dispatch<React.SetStateAction<T>>;
   type: string;
+
   // Correct union type for selectedDate
-  selectedDate?: Date | undefined;
+  selectedDate: Date | undefined;
   // setSelectedDate should update only the selectedDate
   setSelectedDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
 
-  selectedTime?: string;
+  selectedTime: string;
   // setSelectedTime should update only the selectedTime
   setSelectedTime: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -39,7 +40,7 @@ type ElementType = {
   created_at: string;
 };
 
-export default function DateTimePickerReserve<T extends FormTypes>({
+export default function AdminFreeDateTimePicker<T extends FormTypes>({
   formData,
   setFormData,
   type,
@@ -48,21 +49,18 @@ export default function DateTimePickerReserve<T extends FormTypes>({
   setSelectedDate,
   setSelectedTime,
 }: DateTimePickerProps<T>) {
-  // const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  // const [selectedTime, setSelectedTime] = useState<string>("");
   const [calendarData, setCalendarData] = useState<CalendarSlot[]>([]);
   const [availableDates, setAvailableDates] = useState<Set<string>>(new Set());
   const [isAllClosed, setIsAllClosed] = useState(false);
   const [notes, setNotes] = useState<{
     no_dates: string;
   }>();
-  const locale = useLocale();
 
   // ✅ Fetch calendar data from API
   useEffect(() => {
     async function fetchCalendar() {
       try {
-        const res = await fetch("/api/get_reservation_calendar");
+        const res = await fetch("/api/get_freeTrial_calendar");
         const data = await res.json();
         if (data.success) {
           setCalendarData(data.data);
@@ -72,6 +70,7 @@ export default function DateTimePickerReserve<T extends FormTypes>({
             new Date(d.date).toLocaleDateString("en-CA")
           );
           setAvailableDates(new Set(localDates));
+
           const hasAvailable = data.data.some(
             (d: CalendarSlot) => d.status === "available"
           );
@@ -92,13 +91,14 @@ export default function DateTimePickerReserve<T extends FormTypes>({
         );
 
         setNotes({
-          no_dates: locale == "ar" ? no_dates?.text_ar : no_dates?.text_en,
+          no_dates: no_dates?.text_ar 
         });
       } catch (error) {
         return false;
       }
     }
-    getNotes()
+
+    getNotes();
     fetchCalendar();
   }, []);
 
@@ -127,13 +127,6 @@ export default function DateTimePickerReserve<T extends FormTypes>({
     const combinedDateTime = new Date(selectedDate);
     combinedDateTime.setHours(adjustedHours, minutes, 0, 0);
 
-    // setFormData(
-    //   (prev) =>
-    //     ({
-    //       ...(prev as unknown as object),
-    //       date_time: combinedDateTime.toISOString(),
-    //     } as T)
-    // );
     setFormData(
       (prev) =>
         ({
@@ -154,34 +147,59 @@ export default function DateTimePickerReserve<T extends FormTypes>({
         </div>
       ),
       times: [
-        "12:00 ص - 01:30 ص",
-        "02:00 ص - 03:30 ص",
-        "04:00 ص - 05:30 ص",
-        "06:00 ص - 07:30 ص",
+        "12:00 ص - 12:15 ص",
+        "12:30 ص - 12:45 ص",
+        "01:00 ص - 01:15 ص",
+        "02:00 ص - 02:15 ص",
+        "02:30 ص - 02:45 ص",
+        "03:00 ص - 03:15 ص",
+        "04:00 ص - 04:15 ص",
+        "04:30 ص - 04:45 ص",
+        "05:00 ص - 05:15 ص",
+        "06:00 ص - 06:15 ص",
+        "06:30 ص - 06:45 ص",
+        "07:00 ص - 07:15 ص",
       ],
     },
     {
       label: "",
       icon: <Sun className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
       times: [
-        "08:00 ص - 09:30 ص",
-        "10:00 ص - 11:30 ص",
-        "12:00 م - 01:30 م",
-        "02:00 م - 03:30 م",
+        "08:00 ص - 08:15 ص",
+        "08:30 ص - 08:45 ص",
+        "09:00 ص - 09:15 ص",
+        "10:00 ص - 10:15 ص",
+        "10:30 ص - 10:45 ص",
+        "11:00 ص - 11:15 ص",
+        "12:00 م - 12:15 م",
+        "12:30 م - 12:45 م",
+        "01:00 م - 01:15 م",
+        "02:00 م - 02:15 م",
+        "02:30 م - 02:45 م",
+        "03:00 م - 03:15 م",
       ],
     },
     {
       label: "",
       icon: <Moon className="text-[#A4D3DD] w-3 h-3 mx-auto" />,
       times: [
-        "04:00 م - 05:30 م",
-        "06:00 م - 07:30 م",
-        "08:00 م - 09:30 م",
-        "10:00 م - 11:30 م",
+        "04:00 م - 04:15 م",
+        "04:30 م - 04:45 م",
+        "05:00 م - 05:15 م",
+        "06:00 م - 06:15 م",
+        "06:30 م - 06:45 م",
+        "07:00 م - 07:15 م",
+        "08:00 م - 08:15 م",
+        "08:30 م - 08:45 م",
+        "09:00 م - 09:15 م",
+        "10:00 م - 10:15 م",
+        "10:30 م - 10:45 م",
+        "11:00 م - 11:15 م",
       ],
     },
   ];
 
+  // ✅ Disable any day not in DB
   // ✅ Disable any day not in DB + disable today
   const disabledDays = (day: Date) => {
     const localDate = day.toLocaleDateString("en-CA");
@@ -192,7 +210,6 @@ export default function DateTimePickerReserve<T extends FormTypes>({
 
     return !availableDates.has(localDate) || isToday;
   };
-
   return (
     <>
       {isAllClosed ? (
@@ -201,7 +218,7 @@ export default function DateTimePickerReserve<T extends FormTypes>({
         </div>
       ) : (
         <>
-          <div className="bg-[#2D638A] mt-[-10px] text-white px-4 py-2 rounded-t-2xl shadow-lg w-[65%] mx-auto">
+          <div className="bg-[#2D638A] mt-[-10px] text-white px-4 py-2 rounded-t-2xl shadow-lg w-[90%] md:w-[70%] mx-auto">
             {/* === Calendar Section === */}
             <h2 className="text-center text-xs font-semibold pb-2">
               التقويم / Calendar
@@ -214,6 +231,11 @@ export default function DateTimePickerReserve<T extends FormTypes>({
                 onSelect={setSelectedDate}
                 weekStartsOn={6}
                 className="rdp1 custom-day-picker"
+                classNames={{
+                  day_selected:
+                    "bg-[#214E78] text-white rounded-full scale-110 shadow-md transition",
+                  day: "rounded-full hover:bg-[#A4D3DD] hover:text-[#214E78]",
+                }}
                 disabled={disabledDays}
                 styles={{
                   caption_label: {
@@ -221,11 +243,19 @@ export default function DateTimePickerReserve<T extends FormTypes>({
                     fontWeight: "700",
                     color: "#214E78",
                   },
-                  head: { color: "#214E78", fontWeight: "600" },
+                  head: {
+                    color: "#214E78",
+                    fontWeight: "600",
+                    fontSize: "1.2rem", // ✅ Added this
+                  },
+                  day: {
+                    fontSize: "2rem", // ✅ Added this
+                  },
                   day_selected: {
                     backgroundColor: "#214E78",
                     color: "#fff",
-                    padding: "7px",
+                    padding: "118px",
+                    fontSize: "1.2rem", // ✅ Added this
                   },
                 }}
               />
@@ -236,37 +266,22 @@ export default function DateTimePickerReserve<T extends FormTypes>({
               الوقت / Time
             </h2>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-10 md:gap-2 max-h-[140px] md:max-h-[200px] overflow-y-scroll">
               {timeGroups.map((group, index) => (
                 <div
                   key={index}
-                  className="flex flex-col items-center rounded-xl"
+                  className="flex flex-col mb-[80px] md:mb-0  items-center rounded-xl"
                 >
-                  <div className="flex text-[0.4em] flex-col pb-1 items-center mb-2 border-b">
+                  <div className="flex text-[0.4em] flex-col pb-1 items-center mb-0 md:mb-2 border-b">
                     {group.icon}
                     <span className="text-center text-[0.5em] font-bold mt-1">
                       {group.label}
                     </span>
                   </div>
 
-                  <div className="flex flex-col gap-2 w-full relative">
+                  <div className="flex flex-col gap-2 w-full relative max-h-[15rem]  pt-2 ">
                     {group.times.map((time) => {
                       const convertedTime = time;
-
-                      // console.log(convertedTime)
-                      // const selectedDateStr = selectedDate
-                      //   ? selectedDate.toISOString().split("T")[0]
-                      //   : "";
-                      // const selectedDateStr = selectedDate
-                      //   ? selectedDate.toLocaleDateString("en-CA") // stays local, no UTC conversion
-                      //   : "";
-                      console.log("heeeeree" + selectedDate);
-                      // console.log(JSON.stringify(calendarData))
-                      // const slot = calendarData.find(
-                      //   (s) =>
-                      //     s.date.split("T")[0] === selectedDateStr &&
-                      //     s.time_slot.trim() === convertedTime.trim()
-                      // );
 
                       const selectedDateStr = selectedDate
                         ? selectedDate.toLocaleDateString("en-CA")
@@ -279,8 +294,6 @@ export default function DateTimePickerReserve<T extends FormTypes>({
                           s.time_slot.trim() === convertedTime.trim()
                       );
 
-                      console.log("heeeeree" + slot);
-
                       const status = slot?.status ?? "closed";
                       const isBooked = status === "booked";
                       const isClosed = status === "closed";
@@ -289,12 +302,12 @@ export default function DateTimePickerReserve<T extends FormTypes>({
                       return (
                         <label
                           key={time}
-                          className={`relative flex justify-center items-center w-full py-1 rounded-lg cursor-pointer transition-all text-[0.6em] md:text-[0.5em] font-semibold 
+                          className={`relative flex justify-center items-center w-[85%] mx-auto py-1 rounded-lg cursor-pointer transition-all text-[0.5em] md:text-[0.6em] font-semibold 
         ${
           isBooked
             ? "bg-[#CCCCCC] text-[#214E78] cursor-not-allowed"
             : isClosed
-            ? "bg-[#FFFFFF] text-[#214E78] cursor-not-allowed "
+            ? "bg-[#FFFFFF] text-[#214E78] cursor-not-allowed"
             : selectedTime === time
             ? "bg-[#6cb5c6] text-[#214E78]"
             : "bg-[#A4D3DD] text-[#214E78]"
@@ -310,7 +323,7 @@ export default function DateTimePickerReserve<T extends FormTypes>({
                           />
                           {time}
                           <span
-                            className={`absolute right-[-10px] w-1.5 h-1.5 rounded-full ${
+                            className={`absolute right-[-8px] w-1.5 h-1.5 rounded-full ${
                               isBooked
                                 ? "bg-[#CCCCCC]"
                                 : isClosed
@@ -328,7 +341,7 @@ export default function DateTimePickerReserve<T extends FormTypes>({
           </div>
 
           {/* === Legend Section === */}
-          <section className="text-[0.6rem] flex justify-between px-6 p-1 bg-white text-[#214E78] font-bold w-[65%] mx-auto rounded-b-2xl">
+          <section className="text-[0.6rem] flex justify-between px-6 p-1 bg-white text-[#214E78] font-bold w-[90%] md:w-[70%] mx-auto rounded-b-2xl">
             <div className="flex gap-2 items-center">
               <span className="w-2 h-2 bg-[#FFFFFF] border border-[#214E78] rounded-full" />
               <p>مغلق</p>
