@@ -269,7 +269,7 @@ export default function ProfilePage() {
         onClose={() => setShowAdminModal(false)}
       >
         <div className="text-center space-y-6 text-[#214E78]">
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center ">
             <DateTimePickerReserve<ReservationFormData>
               formData={formData}
               setFormData={setFormData}
