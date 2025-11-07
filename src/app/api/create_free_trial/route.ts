@@ -23,17 +23,17 @@ export async function POST(req: Request) {
       );
     }
 
-    connection = await mysql.createConnection({ 
+    connection = await mysql.createConnection({
       host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME
     });
 
     // ✅ Properly type the result of the query
     const [rows] = await connection.query<RowDataPacket[]>(
-      'SELECT email FROM free_trials WHERE email = ?',
-      [email]
+      "SELECT email, phone FROM free_trials WHERE email = ? OR phone = ?",
+      [email, phone]
     );
 
     if (rows.length > 0) {
