@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
         const emailPromises: Promise<void>[] = [
             emailService.sendEmail({
                 to: customerEmail,
-                subject: 'تم تأكيد حجز تجربة مجانيه 🎉',
+                subject: 'تم تأكيد حجز تجربة مجانيه',
                 html: customerHtml,
             }),
         ];
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
             emailPromises.push(
                 emailService.sendEmail({
                     to: adminEmail,
-                    subject: '🗓️ تم حجز تجربة مجانيه جديدة',
+                    subject: 'تم حجز تجربة مجانيه جديدة',
                     html: adminHtml,
                 })
             );

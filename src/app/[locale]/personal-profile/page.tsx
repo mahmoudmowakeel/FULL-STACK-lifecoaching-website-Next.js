@@ -319,7 +319,7 @@ export default function ProfilePage() {
             onClick={handleLogout}
             className="bg-[#A4D3DD] text-[#214E78] px-3 py-1 rounded-md hover:bg-[#8abfcc] transition text-xs font-bold"
           >
-            {locale === "ar" ? "تسجيل الخروج" : "Logout"}
+            {locale === "ar" ? "خروج" : "Logout"}
           </button>
         </div>
       </header>
