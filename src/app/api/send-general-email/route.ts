@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         // ✅ Simple styled Arabic email
         const htmlContent = `
       <div style="font-family: Arial, sans-serif; color: #214E78; padding: 16px; direction: rtl;">
-        <h2>مرحباً ${customerName}!</h2>
+        <h2>مرحباً ${customerName}</h2>
         <p>${messageText.replace(`(اسم العميل)`, customerName).replace("تاريخ و يوم", formatted).replace("ووقت", "")}</p>
         <br/>
         <p style="font-size: 12px; color: #777;">شكرًا لاستخدامك خدماتنا ✨</p>
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         // ✅ Send email to customer only
         await emailService.sendEmail({
             to: customerEmail,
-            subject: '📩 إشعار من خدمتنا',
+            subject: 'شركة استفهام',
             html: htmlContent,
         });
 

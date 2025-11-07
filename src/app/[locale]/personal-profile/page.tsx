@@ -3,9 +3,13 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { NotesModal } from "../components/NotesModal";
+// import { Modal as AdminModal } from "@/app/admin/dashboard/_components/Modal"; // ✅ Import Admin modal
 import NormalButton from "@/app/admin/dashboard/_UI/NormalButton";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
+import { AdminModal } from "@/app/admin/dashboard/_components/ModalAdmin";
+import DateTimePickerReserve from "../components/DateTimePicker_reserve";
+import { ReservationFormData } from "@/lib/types/freeTrials";
 
 interface UserInfo {
   name: string;
@@ -43,12 +47,28 @@ export default function ProfilePage() {
   const [email, setEmail] = useState<string | null>(emailParam);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [editing, setEditing] = useState<boolean>(false);
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [newDateTime, setNewDateTime] = useState<string>("");
+  const [showNoteModal, setShowNoteModal] = useState(false); // ✅ Notes modal
+  const [showAdminModal, setShowAdminModal] = useState(false); // ✅ Admin modal
+  const [editBefore, setEditBefore] = useState(false);
+
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [paymentStatus, setPaymentStatus] = useState<
+    "idle" | "processing" | "success" | "error"
+  >("idle");
+
+  const [formData, setFormData] = useState<ReservationFormData>({
+    email: "",
+    date_time: null,
+    type: "",
+    amount: "200",
+    paymentMethod: "gateway",
+    payment_bill: "no bill",
+  });
+
   const [selectedReservation, setSelectedReservation] =
     useState<Reservation | null>(null);
-  const [editBefore, setEditBefore] = useState<boolean>(false);
+  const [newDateTime, setNewDateTime] = useState<string>("");
 
   // ✅ Get email from localStorage if not in params
   useEffect(() => {
@@ -61,7 +81,7 @@ export default function ProfilePage() {
     }
   }, [router]);
 
-  // ✅ Fetch reservations and user info
+  // ✅ Fetch reservations
   const fetchReservations = async () => {
     try {
       const res = await fetch("/api/get-reservations");
@@ -72,7 +92,6 @@ export default function ProfilePage() {
           (r: Reservation) => r.email === email
         );
 
-        // ✅ Get user info (from first reservation)
         if (allUserReservations.length > 0 && !nameParam && !phoneParam) {
           const { name, phone } = allUserReservations[0];
           setUserInfo({ name, phone, email });
@@ -80,7 +99,9 @@ export default function ProfilePage() {
 
         const pending = allUserReservations
           .filter((r: Reservation) => r.status === "pending")
-          .sort((a: Reservation, b: Reservation) => parseInt(a.id) - parseInt(b.id));
+          .sort(
+            (a: Reservation, b: Reservation) => parseInt(a.id) - parseInt(b.id)
+          );
 
         if (pending && pending[0]?.is_edited) {
           setEditBefore(true);
@@ -88,7 +109,9 @@ export default function ProfilePage() {
 
         const completed = allUserReservations
           .filter((r: Reservation) => r.status === "completed")
-          .sort((a: Reservation, b: Reservation) => parseInt(a.id) - parseInt(b.id));
+          .sort(
+            (a: Reservation, b: Reservation) => parseInt(a.id) - parseInt(b.id)
+          );
 
         setCurrentBookings(pending);
         setPreviousBookings(completed);
@@ -113,8 +136,18 @@ export default function ProfilePage() {
     setIsLoading(false);
   }, [email, nameParam, phoneParam]);
 
-  // ✅ Save changes
+  // ✅ Save changes (modal)
   const handleSave = async () => {
+    let formattedDate = formData?.date_time;
+    if (formattedDate) {
+      const date = new Date(formattedDate);
+      formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
+        .getHours()
+        .toString()
+        .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+    }
     if (!selectedReservation) return;
     try {
       const res = await fetch("/api/update-reservation", {
@@ -123,12 +156,46 @@ export default function ProfilePage() {
         body: JSON.stringify({
           email: selectedReservation.email,
           id: selectedReservation.id,
-          date_time: newDateTime,
+          date_time: formattedDate,
           is_edited: true,
         }),
       });
 
       const data = await res.json();
+
+      const selectedDateISO = selectedDate
+        ? new Date(
+            selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+          )
+            .toISOString()
+            .split("T")[0]
+        : "";
+
+      const readySlot = [
+        {
+          date: selectedDateISO,
+          time_slot: selectedTime,
+          status: "booked",
+        },
+      ];
+      const updateSlotResponse = await fetch(
+        "/api/update_reservation_calendar",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            slots: readySlot,
+          }),
+        }
+      );
+
+      const updateSlotData = await updateSlotResponse.json();
+      if (!updateSlotResponse.ok || !updateSlotData.success) {
+        console.error("⚠️ Calendar update failed:", updateSlotData.error);
+        throw new Error("فشل في تحديث التقويم.");
+      }
 
       if (data.success) {
         await fetch("/api/send-general-email", {
@@ -138,11 +205,11 @@ export default function ProfilePage() {
             customerName: selectedReservation.name,
             customerEmail: selectedReservation.email,
             type: "edit",
-            date_time: newDateTime,
+            date_time: formattedDate,
           }),
         });
         toast.success(t("updateSuccess"));
-        setEditing(false);
+        setShowAdminModal(false);
         setSelectedReservation(null);
         fetchReservations();
       } else {
@@ -154,7 +221,6 @@ export default function ProfilePage() {
     }
   };
 
-  // ✅ Logout handler
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("email");
@@ -182,14 +248,12 @@ export default function ProfilePage() {
       className="min-h-screen bg-[url('/Images/bg.jpg')] bg-cover bg-center bg-no-repeat text-[#214E78] mt-[80px]"
       dir="rtl"
     >
-      {/* Modal */}
+      {/* 🧩 Notes Modal */}
       <NotesModal
-        isOpen={showModal}
+        isOpen={showNoteModal}
         onClose={() => {
-          setShowModal(false);
-          if (!editBefore) {
-            setEditing(true);
-          }
+          setShowNoteModal(false);
+          if (!editBefore) setShowAdminModal(true);
         }}
       >
         <div className="text-center space-y-4">
@@ -199,18 +263,56 @@ export default function ProfilePage() {
         </div>
       </NotesModal>
 
+      {/* 🧩 Admin Modal for Editing */}
+      <AdminModal
+        isOpen={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+      >
+        <div className="text-center space-y-6 text-[#214E78]">
+          <div className="flex flex-col items-center gap-3">
+            <DateTimePickerReserve<ReservationFormData>
+              formData={formData}
+              setFormData={setFormData}
+              type="reservation"
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedTime={selectedTime}
+              setSelectedTime={setSelectedTime}
+            />
+          </div>
+
+          <div className="flex justify-center gap-4 mt-6">
+            <NormalButton
+              bgColor="#FFFFFF"
+              textColor="#214E78"
+              onClick={() => setShowAdminModal(false)}
+            >
+              إلغاء <br /> Cancel
+            </NormalButton>
+
+            <NormalButton
+              bgColor="#214E78"
+              textColor="#FFFFFF"
+              onClick={handleSave}
+            >
+              حفظ <br /> Save
+            </NormalButton>
+          </div>
+        </div>
+      </AdminModal>
+
       {/* Header */}
-      <header className="flex flex-row md:flex-row justify-between items-center md:items-center bg-[#214E78] text-[#A4D3DD] px-4 py-4 text-sm md:text-md gap-2 md:gap-0">
+      <header className="flex flex-row md:flex-row justify-between items-center bg-[#214E78] text-[#A4D3DD] px-4 py-4 text-sm md:text-md gap-2 md:gap-0">
         <div className="font-bold text-white border-l md:border-l px-2">
           {t("profilePage2")}
         </div>
 
-        <div className="text-white flex flex-row md:flex-row flex-wrap justify-between items-center gap-1 md:gap-4 text-xs md:text-sm w-full md:w-auto">
+        <div className="text-white flex flex-row flex-wrap justify-between items-center gap-1 md:gap-4 text-xs md:text-sm w-full md:w-auto">
           <span>
             {t("email")}: {userInfo?.email}
           </span>
           <span>
-            {t("phone")} : {userInfo?.phone}
+            {t("phone")}: {userInfo?.phone}
           </span>
           <span>
             {t("name")}: {userInfo?.name}
@@ -231,11 +333,10 @@ export default function ProfilePage() {
         <section className="w-full md:w-[80%] text-center mb-10">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold">{t("bookings")}</h2>
-            {!editing && currentBookings.length > 0 && (
+            {currentBookings.length > 0 && (
               <button
                 onClick={() => {
-                  setShowModal(true);
-                  if (editBefore) return;
+                  setShowNoteModal(true);
                   setSelectedReservation(currentBookings[0]);
                   setNewDateTime(
                     new Date(currentBookings[0].date_time)
@@ -250,6 +351,7 @@ export default function ProfilePage() {
             )}
           </div>
 
+          {/* Table */}
           <div className="bg-[#A4D3DD]/90 rounded-lg py-3 px-3 font-semibold text-[#214E78] overflow-x-auto shadow-md">
             <div className="hidden sm:grid sm:grid-cols-5 gap-2 text-xs md:text-sm font-bold mb-3">
               <span>{t("dateTime")}</span>
@@ -264,21 +366,12 @@ export default function ProfilePage() {
                 key={b.id}
                 className="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-[#A4D3DD] py-2 px-2 rounded-lg text-xs md:text-sm shadow-sm"
               >
-                {editing && selectedReservation?.id === b.id ? (
-                  <input
-                    type="datetime-local"
-                    value={newDateTime}
-                    onChange={(e) => setNewDateTime(e.target.value)}
-                    className="rounded-md px-2 py-1 border border-[#214E78]"
-                  />
-                ) : (
-                  <span dir="ltr">
-                    {new Date(b.date_time)
-                      .toISOString()
-                      .slice(0, 16)
-                      .replace("T", " ")}
-                  </span>
-                )}
+                <span dir="ltr">
+                  {new Date(b.date_time)
+                    .toISOString()
+                    .slice(0, 16)
+                    .replace("T", " ")}
+                </span>
                 <span>{b.type === "inPerson" ? "استماع ولقاء" : "استماع"}</span>
                 <span>
                   {b.paymentMethod === "gateway"
@@ -288,21 +381,13 @@ export default function ProfilePage() {
                     : "نقدا"}
                 </span>
                 <span>{b.invoice_number}</span>
-                <span>{b.amount}</span>
+                <span>
+                  {(Number(b.amount) / 100).toFixed(2)}{" "}
+                  {locale == "ar" ? "درهم" : "AED"}
+                </span>
               </div>
             ))}
           </div>
-
-          {editing && !editBefore && (
-            <div className="flex justify-center gap-4 mt-4">
-              <button
-                onClick={handleSave}
-                className="bg-[#214E78] text-white px-6 py-2 rounded-md hover:bg-[#1b3f60] transition text-sm font-semibold"
-              >
-                {t("save")}
-              </button>
-            </div>
-          )}
         </section>
 
         {/* Previous Bookings */}
@@ -337,7 +422,11 @@ export default function ProfilePage() {
                     : "نقدا"}
                 </span>
                 <span>{b.invoice_number}</span>
-                <span>{b.amount}</span>
+                <span>
+                  {" "}
+                  {(Number(b.amount) / 100).toFixed(2)}{" "}
+                  {locale == "ar" ? "درهم" : "AED"}
+                </span>
               </div>
             ))}
           </div>

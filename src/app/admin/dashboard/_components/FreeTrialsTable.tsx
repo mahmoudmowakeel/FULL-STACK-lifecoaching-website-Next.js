@@ -12,7 +12,7 @@ interface FreeTrialsTableProps {
   downloadPDF: () => void;
   status?: "pending" | "completed";
   openModalForTrial?: (id: number, date: string) => void;
-  handleSave?: (id: number) => void;
+  handleSave?: (id: number, name: string, email: string) => void;
 }
 
 export default function FreeTrialsTable({
@@ -108,7 +108,7 @@ interface TableContentRowProps {
   editable: boolean;
   showCompleteButton: boolean;
   openModalForTrial: (id: number, date: string) => void;
-  handleSave?: (id: number) => void;
+  handleSave?: (id: number, name: string, email: string) => void;
 }
 
 function TableContentRow({
@@ -169,7 +169,7 @@ function TableContentRow({
                   <NormalButton
                     bgColor="#214E78"
                     textColor="#FFFFFF"
-                    onClick={() => handleSave?.(data.id)}
+                    onClick={() => handleSave?.(data.id, data.email, data.name)}
                   >
                     حفظ <br /> Save
                   </NormalButton>

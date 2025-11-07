@@ -42,7 +42,7 @@ class EmailService {
   async sendEmail(emailData: EmailData): Promise<void> {
     try {
       await this.transporter.sendMail({
-        from: `"Life Coaching" <${process.env.EMAIL_MEET_USER}>`,
+        from: `<${process.env.EMAIL_MEET_USER}>`,
         to: emailData.to,
         subject: emailData.subject,
         html: emailData.html,

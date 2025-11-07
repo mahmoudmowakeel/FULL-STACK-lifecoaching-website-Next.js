@@ -75,17 +75,12 @@ export default function HiringPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (name === "phone") {
-      try {
-        const parsed = parsePhoneNumberFromString(
-          selectedCountry.code + value.replace(/\D/g, "")
-        );
-        if (parsed && parsed.isValid()) {
-          setPhoneError("");
-        } else {
-          setPhoneError("❌ رقم غير صالح لهذا البلد");
-        }
-      } catch {
-        setPhoneError("❌ رقم غير صالح");
+      const cleaned = value.replace(/\D/g, "");
+      const parsed = parsePhoneNumberFromString(selectedCountry.code + cleaned);
+      if (parsed && parsed.isValid() && cleaned.length >= 8) {
+        setPhoneError("");
+      } else {
+        setPhoneError("❌ رقم غير صالح لهذا البلد");
       }
     }
   };
@@ -122,6 +117,10 @@ export default function HiringPage() {
   // ✅ Handle Submit (includes OTP check)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (phoneError) {
+      setMessage("رقم الهاتف خطأ");
+      return;
+    }
 
     // Check OTP before submit
     if (!formData.email) {
@@ -289,11 +288,19 @@ export default function HiringPage() {
                                 setDropdownOpen(false);
                                 setSearch("");
                                 // re-validate on country change
-                                const parsed = parsePhoneNumberFromString(
-                                  country.code +
-                                    formData.phone.replace(/\D/g, "")
+                                const cleanedNumber = formData.phone.replace(
+                                  /\D/g,
+                                  ""
                                 );
-                                if (parsed && parsed.isValid()) {
+                                const parsed = parsePhoneNumberFromString(
+                                  country.code + cleanedNumber
+                                );
+
+                                if (
+                                  parsed &&
+                                  parsed.isValid() &&
+                                  cleanedNumber.length >= 8
+                                ) {
                                   setPhoneError("");
                                 } else {
                                   setPhoneError("❌ رقم غير صالح لهذا البلد");

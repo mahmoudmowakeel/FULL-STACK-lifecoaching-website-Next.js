@@ -11,6 +11,12 @@ interface ReservationsTableProps {
   toggleRow?: (id: number) => void;
   toggleSelectAll?: () => void;
   downloadPDF: () => void;
+  updateReservationStatus?: (
+    reservation: Reservation,
+    stauts: "completed" | "canceled"
+  ) => void;
+  openModalForReservation?: (id: number) => void;
+  handleSave?: (email: string, name: string) => void;
   children?: React.ReactNode;
 }
 
@@ -21,6 +27,9 @@ export default function ReservationsTable({
   toggleRow,
   toggleSelectAll,
   downloadPDF,
+  updateReservationStatus,
+  openModalForReservation,
+  handleSave,
 }: ReservationsTableProps) {
   const isCompletedOrCanceled = status === "completed" || status === "canceled";
 
@@ -93,6 +102,9 @@ export default function ReservationsTable({
               selected={selectedIds.includes(reservation.id)}
               toggleRow={toggleRow}
               status={status}
+              updateReservationStatus={updateReservationStatus!}
+              openModalForReservation={openModalForReservation!}
+              handleSave={handleSave!}
             />
           ))}
         </tbody>
@@ -108,6 +120,12 @@ interface ReservationRowProps {
   selected?: boolean;
   toggleRow?: (id: number) => void;
   status: "pending" | "completed" | "canceled";
+  updateReservationStatus?: (
+    reservation: Reservation,
+    status: "completed" | "canceled"
+  ) => void;
+  openModalForReservation?: (id: number) => void;
+  handleSave?: (email: string, name: string) => void;
 }
 
 function ReservationRow({
@@ -116,6 +134,9 @@ function ReservationRow({
   selected,
   toggleRow,
   status,
+  updateReservationStatus, // ✅ passed in
+  openModalForReservation,
+  handleSave,
 }: ReservationRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -129,40 +150,25 @@ function ReservationRow({
     }
   }, [formData.date_time]);
 
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-      const updatedData = { ...formData, date_time: formatted };
-      const res = await fetch("/api/update-reservation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData),
-      });
-      const result = await res.json();
-      if (!result.success) {
-        alert("❌ Update failed.");
-      } else {
-        alert("✅ Updated successfully!");
-        setIsEditing(false);
-      }
-    } catch (err) {
-      console.error("❌ Error saving:", err);
-      alert("Error while saving changes.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
-  const handleCancel = () => {
+  const handleCancelEdit = () => {
     setIsEditing(false);
     setFormData(data);
+  };
+
+  // ✅ Handle status updates dynamically based on button type
+  const handleStatusUpdate = (newStatus: "completed" | "canceled") => {
+    if (updateReservationStatus) {
+      updateReservationStatus(data, newStatus);
+    } else {
+      alert("⚠️ updateReservationStatus not provided!");
+    }
   };
 
   const isCompletedOrCanceled = status === "completed" || status === "canceled";
 
   return (
     <tr className="bg-[#A4D3DD] h-fit text-[8px]">
-      {/* ✅ Toggle checkbox always visible if toggleRow exists */}
       {toggleRow && (
         <td className="px-4 py-2">
           <input
@@ -211,14 +217,17 @@ function ReservationRow({
                 <NormalButton
                   bgColor="#FFFFFF"
                   textColor="black"
-                  onClick={handleCancel}
+                  onClick={handleCancelEdit}
                 >
                   إلغاء <br /> Cancel
                 </NormalButton>
                 <NormalButton
                   bgColor="#214E78"
                   textColor="#FFFFFF"
-                  onClick={handleSave}
+                  onClick={async () => {
+                    handleSave?.(data.email, data.name);
+                    handleCancelEdit();
+                  }}
                 >
                   {isSaving ? (
                     <>
@@ -232,13 +241,34 @@ function ReservationRow({
                 </NormalButton>
               </>
             ) : (
-              <NormalButton
-                bgColor="#214E78"
-                textColor="#FFFFFF"
-                onClick={() => setIsEditing(true)}
-              >
-                تعديل <br /> Edit
-              </NormalButton>
+              <>
+                <NormalButton
+                  bgColor="#5b5757"
+                  textColor="#FFFFFF"
+                  onClick={() => handleStatusUpdate("canceled")}
+                >
+                  الغاء <br /> Cancel
+                </NormalButton>
+                {/* ✅ These two call updateReservationStatus dynamically */}
+                <NormalButton
+                  bgColor="#FFFFFF"
+                  textColor="#214E78"
+                  onClick={() => handleStatusUpdate("completed")}
+                >
+                  اتمام <br /> Complete
+                </NormalButton>
+
+                <NormalButton
+                  bgColor="#214E78"
+                  textColor="#FFFFFF"
+                  onClick={() => {
+                    setIsEditing(true);
+                    openModalForReservation?.(data.id);
+                  }}
+                >
+                  تعديل <br /> Edit
+                </NormalButton>
+              </>
             )}
           </div>
         )}

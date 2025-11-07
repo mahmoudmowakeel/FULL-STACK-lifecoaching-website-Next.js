@@ -207,7 +207,7 @@ export default function FreeTrialsPage() {
       console.error("❌ Error updating status:", error);
     }
   };
-  const handleSave = async (id: number) => {
+  const handleSave = async (id: number, name: string, email: string) => {
     let formattedDate = formData.date_time;
     if (formattedDate) {
       const date = new Date(formattedDate);
@@ -222,7 +222,11 @@ export default function FreeTrialsPage() {
       const res = await fetch("/api/update-free-trial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, date_time: formattedDate, status: "pending" }),
+        body: JSON.stringify({
+          id,
+          date_time: formattedDate,
+          status: "pending",
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -259,6 +263,22 @@ export default function FreeTrialsPage() {
       if (!updateSlotResponse.ok || !updateSlotData.success) {
         console.error("⚠️ Calendar update failed:", updateSlotData.error);
         throw new Error("فشل في تحديث التقويم.");
+      }
+
+      try {
+        await fetch("/api/send-general-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerName: name,
+            customerEmail: email,
+            type: "edit",
+            date_time: formattedDate,
+          }),
+        });
+        console.log(`📩 edit email sent to `);
+      } catch (emailError) {
+        console.error(`❌ Failed to send edit email:`, emailError);
       }
     } catch (error) {
       console.error("❌ Error updating status:", error);

@@ -107,6 +107,7 @@ export default function FreeTrialButton({ text }: { text: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!formData.date_time) {
       setMessage("حقل التاريخ والوقت مطلوب");
       return;
@@ -272,9 +273,24 @@ export default function FreeTrialButton({ text }: { text: string }) {
       console.error("Error:", err);
     }
   };
-
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Update the formData state
+    setFormData({ ...formData, [name]: value });
+
+    // Phone validation
+    if (name === "phone") {
+      const cleaned = value.replace(/\D/g, ""); // remove non-numeric
+      const parsed = parsePhoneNumberFromString(selectedCountry.code + cleaned);
+
+      // Require at least 8 digits and valid number
+      if (parsed && parsed.isValid() && cleaned.length >= 8) {
+        setPhoneError("");
+      } else {
+        setPhoneError("❌ رقم غير صالح لهذا البلد");
+      }
+    }
   }
 
   async function handelVerfication(e: React.FormEvent) {
@@ -304,6 +320,10 @@ export default function FreeTrialButton({ text }: { text: string }) {
     }
     if (otp != formOtp) {
       setMessage(freeTrialT("otp_wrong"));
+      return;
+    }
+    if (phoneError) {
+      setMessage("رقم الهاتف خطأ");
       return;
     }
     setMessage("");
@@ -475,11 +495,18 @@ export default function FreeTrialButton({ text }: { text: string }) {
                             setSelectedCountry(country);
                             setDropdownOpen(false);
                             setSearch("");
-                            // re-validate on country change
+
+                            const cleaned =
+                              formData.phone?.replace(/\D/g, "") || "";
                             const parsed = parsePhoneNumberFromString(
-                              country.code + formData.phone?.replace(/\D/g, "")
+                              country.code + cleaned
                             );
-                            if (parsed && parsed.isValid()) {
+
+                            if (
+                              parsed &&
+                              parsed.isValid() &&
+                              cleaned.length >= 8
+                            ) {
                               setPhoneError("");
                             } else {
                               setPhoneError("❌ رقم غير صالح لهذا البلد");

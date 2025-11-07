@@ -7,7 +7,9 @@ export interface FreeTrialFormData {
 }
 
 export interface ReservationFormData {
-  email: string | ""; // optional, can be null if empty
+  email: string | ""; // optional, can be null if 
+  name?: string;
+  phone?: string;
   date_time?: string | null; // optional, if you want to manually select a date
   status?: string; // optional, defaults to 'pending' in the DB
   amount: string;

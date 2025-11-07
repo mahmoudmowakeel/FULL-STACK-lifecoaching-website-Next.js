@@ -6,6 +6,10 @@ import Image from "next/image";
 import NormalButton from "../_UI/NormalButton";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { AdminModal } from "../_components/ModalAdmin";
+import DateTimePickerReserve from "@/app/[locale]/components/DateTimePicker_reserve";
+import { ReservationFormData } from "@/lib/types/freeTrials";
+import AdminDateTimePickerReserve from "../_components/ReservePicketForAdmin";
 
 export interface Reservation {
   id: number;
@@ -23,51 +27,29 @@ export interface Reservation {
   invoice_pdf: string | null;
 }
 
-export default function CompletedReservationsPage() {
+export default function ReservationsPage() {
   // ===== Add these states at the top =====
   const [editingReservationId, setEditingReservationId] = useState<
     number | null
   >(null);
   const [tempDateTime, setTempDateTime] = useState<string>("");
   const [originalDateTime, setOriginalDateTime] = useState<string>("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState<Reservation | null>(null);
+  const [formData, setFormData] = useState<ReservationFormData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>("");
 
-  // ===== Modal Handlers =====
-  const openModalForReservation = (id: number, currentDate: string | null) => {
-    const reservation = reservations.find((r) => r.id === id) || null;
-    setEditingReservationId(id);
-    setFormData(reservation);
-    setTempDateTime(currentDate || "");
-    setOriginalDateTime(currentDate || "");
-    setIsModalOpen(true);
-  };
-
-  const handleModalDone = () => {
-    if (editingReservationId !== null && formData) {
-      setReservations((prev) =>
-        prev.map((r) =>
-          r.id === editingReservationId ? { ...r, date_time: tempDateTime } : r
-        )
-      );
-    }
-    setIsModalOpen(false);
-  };
-
-  const handleModalCancel = () => {
-    if (editingReservationId !== null) {
-      setReservations((prev) =>
-        prev.map((r) =>
-          r.id === editingReservationId
-            ? { ...r, date_time: originalDateTime }
-            : r
-        )
-      );
-    }
-    setIsModalOpen(false);
-  };
+  // const handleModalCancel = () => {
+  //   if (editingReservationId !== null) {
+  //     setReservations((prev) =>
+  //       prev.map((r) =>
+  //         r.id === editingReservationId
+  //           ? { ...r, date_time: originalDateTime }
+  //           : r
+  //       )
+  //     );
+  //   }
+  //   setIsModalOpen(false);
+  // };
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [filteredReservations, setFilteredReservations] = useState<
     Reservation[]
@@ -81,8 +63,57 @@ export default function CompletedReservationsPage() {
   const [emailFilter, setEmailFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [phoneFilter, setPhoneFilter] = useState("");
+  const [updating, setUpdating] = useState<string | null>(null);
 
   const filterRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Update reservation and send mail if canceled or completed
+  const updateReservationStatus = async (
+    resv: Reservation,
+    newStatus: "completed" | "canceled"
+  ) => {
+    setUpdating(resv.email);
+    try {
+      const res = await fetch("/api/update-reservation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resv.email, status: newStatus }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        console.error("❌ Failed to update:", data.error);
+        alert(data.error || "Update failed");
+        return;
+      }
+      let emailType: "cancel_reservation" | "complete_reservation" | null =
+        null;
+      if (newStatus === "canceled") emailType = "cancel_reservation";
+      else if (newStatus === "completed") emailType = "complete_reservation";
+      if (emailType) {
+        try {
+          await fetch("/api/send-general-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              customerName: resv.name,
+              customerEmail: resv.email,
+              type: emailType,
+              date_time: resv.date_time,
+            }),
+          });
+          console.log(`📩 ${emailType} email sent to ${resv.email}`);
+        } catch (emailError) {
+          console.error(`❌ Failed to send ${emailType} email:`, emailError);
+        }
+      }
+      await fetchReservations();
+    } catch (err) {
+      console.error("❌ Error updating status:", err);
+      alert("Network error while updating status");
+    } finally {
+      setUpdating(null);
+    }
+  };
 
   // Fetch completed reservations
   const fetchReservations = async () => {
@@ -233,6 +264,127 @@ export default function CompletedReservationsPage() {
     doc.save(`reservations-${Date.now()}.pdf`);
   };
 
+  // ===== Modal Logic =====
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingReservation, setEditingReservation] =
+    useState<Reservation | null>(null);
+
+  const openModalForReservation = (id: number) => {
+    const reservation = filteredReservations.find((r) => r.id === id);
+    if (!reservation) return;
+
+    // Convert to ReservationFormData
+    const converted: ReservationFormData = {
+      email: reservation.email,
+      name: reservation.name,
+      phone: reservation.phone,
+      date_time: reservation.date_time || "",
+      paymentMethod: reservation.paymentMethod || "",
+      payment_bill: reservation.payment_bill || "",
+      type: reservation.type || "",
+      amount: reservation.amount || "",
+    };
+
+    setFormData(converted);
+    setEditingReservation(reservation);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => setIsModalOpen(false);
+
+  const handleModalDone = () => {
+    // TODO: Save changes if needed later
+    setIsModalOpen(false);
+  };
+
+  const handleSave = async (email: string, name: string) => {
+    let formattedDate = formData?.date_time;
+    if (formattedDate) {
+      const date = new Date(formattedDate);
+      formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
+        .getHours()
+        .toString()
+        .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+    }
+    try {
+      // setIsSaving(true);
+      const updatedData = {
+        email,
+        status: "pending",
+        date_time: formattedDate,
+      };
+      const res = await fetch("/api/update-reservation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        alert("❌ Update failed.");
+      } else {
+        alert("✅ Updated successfully!");
+        // setIsEditing(false);
+      }
+
+      const selectedDateISO = selectedDate
+        ? new Date(
+            selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+          )
+            .toISOString()
+            .split("T")[0]
+        : "";
+
+      const readySlot = [
+        {
+          date: selectedDateISO,
+          time_slot: selectedTime,
+          status: "booked",
+        },
+      ];
+      const updateSlotResponse = await fetch(
+        "/api/update_reservation_calendar",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            slots: readySlot,
+          }),
+        }
+      );
+
+      const updateSlotData = await updateSlotResponse.json();
+      if (!updateSlotResponse.ok || !updateSlotData.success) {
+        console.error("⚠️ Calendar update failed:", updateSlotData.error);
+        throw new Error("فشل في تحديث التقويم.");
+      }
+
+      try {
+        await fetch("/api/send-general-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerName: name,
+            customerEmail: email,
+            type: "edit",
+            date_time: formattedDate,
+          }),
+        });
+        console.log(`📩 edit email sent to ${email}`);
+      } catch (emailError) {
+        console.error(`❌ Failed to send edit email:`, emailError);
+      }
+    } catch (err) {
+      console.error("❌ Error saving:", err);
+      alert("Error while saving changes.");
+    } finally {
+      // setIsSaving(false);
+    }
+  };
+
   return (
     <div className="relative">
       <ContentContainer
@@ -341,9 +493,47 @@ export default function CompletedReservationsPage() {
             toggleRow={toggleRow}
             toggleSelectAll={toggleSelectAll}
             downloadPDF={downloadPDF}
+            updateReservationStatus={updateReservationStatus}
+            openModalForReservation={openModalForReservation}
+            handleSave={handleSave}
           />
         )}
       </ContentContainer>
+      {isModalOpen && editingReservation && (
+        <AdminModal isOpen={isModalOpen} onClose={closeModal}>
+          <div className="text-[#214E78]">
+            <AdminDateTimePickerReserve<ReservationFormData>
+              formData={formData!} // safe because we set it before opening
+              setFormData={
+                setFormData as React.Dispatch<
+                  React.SetStateAction<ReservationFormData>
+                >
+              }
+              type="reservation"
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedTime={selectedTime}
+              setSelectedTime={setSelectedTime}
+            />
+            <div className="flex justify-center gap-4 mt-6">
+              <NormalButton
+                bgColor="#FFFFFF"
+                textColor="#214E78"
+                onClick={closeModal}
+              >
+                إلغاء <br /> Cancel
+              </NormalButton>
+              <NormalButton
+                bgColor="#214E78"
+                textColor="#FFFFFF"
+                onClick={handleModalDone}
+              >
+                تم <br /> Done
+              </NormalButton>
+            </div>
+          </div>
+        </AdminModal>
+      )}
     </div>
   );
 }
