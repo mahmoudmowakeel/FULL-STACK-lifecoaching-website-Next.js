@@ -477,7 +477,7 @@ export default function ReservationButton({ text }: { text: string }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="p-2 rounded-full w-full sm:w-auto min-h-[150px]"
+        className="p-2 rounded-full w-full sm:w-auto sm:min-h-[100px] md:min-h-[150px]"
       >
         <section className="w-full max-w-sm mx-auto h-full text-sm sm:text-[12px] bg-[url('/Images/bg.jpg')] bg-cover bg-center rounded-2xl cursor-pointer">
           <div className="bg-[#214e78b2] hover:bg-[#ffffff7e] hover:font-extrabold hover:text-[#214e78b2] transition duration-300 h-full w-full rounded-2xl text-white flex flex-col justify-center items-center gap-3 p-1 sm:px-1">
