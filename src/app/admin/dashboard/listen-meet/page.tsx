@@ -109,7 +109,7 @@ export default function ListenMeetPage() {
                       }
                       className="text-white bg-[#214E78] py-1 px-4 rounded-2xl ml-3 w-24 text-center appearance-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
-                    ريال
+                    درهم
                   </span>
                 </div>
 

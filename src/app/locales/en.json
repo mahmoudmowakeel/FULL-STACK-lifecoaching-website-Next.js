@@ -94,7 +94,7 @@
     "type_required": "Reservation type field is required, please enter it.",
     "reserve_error": "An error occurred while confirming the reservation",
     "try_again": "Please try again later or contact support.",
-    "currency": "SAR"
+    "currency": "AED"
   },
   "profilePage": {
     "profilePag2": "Profile Page",
