@@ -418,12 +418,20 @@ export default function FreeTrialsPage() {
             selectedTime={selectedTime}
             setSelectedTime={setSelectedTime}
           />
-          <button
-            className="mt-4 w-full bg-[#214E78] text-white p-2 rounded-md"
+         <div className="flex justify-between gap-3.5 mx-auto w-[50%]"> 
+           <button
+            className="mt-4 w-[50%] text-[#214E78] bg-white p-1 rounded-md cursor-pointer"
             onClick={handleModalDone}
           >
-            Done
+            اتمام <br /> Done
           </button>
+          <button
+            className="mt-4 w-[50%] bg-[#214E78] text-white p-1 rounded-md cursor-pointer"
+            onClick={() => setIsModalOpen(false)}
+          >
+            الغاء <br /> cancel
+          </button>
+         </div>
         </AdminModal>
       </ContentContainer>
     </div>

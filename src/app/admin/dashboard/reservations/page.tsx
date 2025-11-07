@@ -515,21 +515,19 @@ export default function ReservationsPage() {
               selectedTime={selectedTime}
               setSelectedTime={setSelectedTime}
             />
-            <div className="flex justify-center gap-4 mt-6">
-              <NormalButton
-                bgColor="#FFFFFF"
-                textColor="#214E78"
-                onClick={closeModal}
-              >
-                إلغاء <br /> Cancel
-              </NormalButton>
-              <NormalButton
-                bgColor="#214E78"
-                textColor="#FFFFFF"
+            <div className="flex justify-between gap-3.5 mx-auto w-[50%]">
+              <button
+                className="mt-4 w-[50%] text-[#214E78] bg-white p-1 rounded-md cursor-pointer"
                 onClick={handleModalDone}
               >
-                تم <br /> Done
-              </NormalButton>
+                اتمام <br /> Done
+              </button>
+              <button
+                className="mt-4 w-[50%] bg-[#214E78] text-white p-1 rounded-md cursor-pointer"
+                onClick={closeModal}
+              >
+                الغاء <br /> cancel
+              </button>
             </div>
           </div>
         </AdminModal>
