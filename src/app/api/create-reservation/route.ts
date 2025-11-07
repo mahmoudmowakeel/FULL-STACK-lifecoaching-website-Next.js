@@ -78,12 +78,12 @@ export async function POST(req: Request) {
             [email]
         );
 
-        if (rows.length > 0) {
-            return NextResponse.json(
-                { success: false, message: "Email already has a pending reservation" },
-                { status: 409 }
-            );
-        }
+        // if (rows.length > 0) {
+        //     return NextResponse.json(
+        //         { success: false, message: "Email already has a pending reservation" },
+        //         { status: 409 }
+        //     );
+        // }
 
         // ✅ Create invoice number (YYYY-MM-DD-000001 format)
         const today = new Date().toISOString().split("T")[0];

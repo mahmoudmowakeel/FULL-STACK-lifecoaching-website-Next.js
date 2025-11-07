@@ -48,6 +48,7 @@ export default function HiringPage() {
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [phoneError, setPhoneError] = useState("");
+  const [note, setNote] = useState("");
 
   async function getPmessages() {
     try {
@@ -160,7 +161,8 @@ export default function HiringPage() {
         }
 
         setStatus("success");
-        setMessage(
+        console.log(pMessage.apply);
+        setNote(
           pMessage.apply
             .replace(`(اسم العميل)`, formData.name)
             .replace("تاريخ و يوم", "")
@@ -169,7 +171,6 @@ export default function HiringPage() {
         setShowModal(true);
         setFormData({ name: "", phone: "", email: "", message: "" });
         setOtp("");
-        setMessage("");
         setFormOtp("");
       } else {
         setStatus("error");
@@ -193,7 +194,7 @@ export default function HiringPage() {
   return (
     <>
       <NotesModal isOpen={showModal} onClose={() => setShowModal(false)}>
-        <p>{message}</p>
+        <p>{note}</p>
       </NotesModal>
 
       <div className="w-full min-h-[100vh] mt-10 bg-[url('/Images/bg.jpg')] bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center px-4">
@@ -272,7 +273,7 @@ export default function HiringPage() {
                       </button>
 
                       {dropdownOpen && (
-                        <div className="absolute z-50 bg-white text-[#214E78] rounded-md shadow-lg mt-1 w-56 max-h-60 overflow-y-auto">
+                        <div className="absolute left-0 z-50 bg-white text-[#214E78] rounded-md shadow-lg mt-1 w-56 max-h-60 overflow-y-auto">
                           <input
                             type="text"
                             placeholder={t("search_country")}

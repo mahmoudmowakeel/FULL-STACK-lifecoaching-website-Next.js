@@ -9,30 +9,31 @@ export async function POST() {
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME
+      database: process.env.DB_NAME,
+      multipleStatements: true, // 👈 allow multi-statements safely
+      charset: "utf8mb4", // 👈 ensure emoji support
     });
 
-    // ✅ Ensure table exists
-    const date = await connection.query(`
-INSERT INTO additional_page_texts (type, text_ar, text_en, created_at, updated_at)
-VALUES (
-  'no_dates',
-  'لا توجد مواعيد متاحه',
-  'No available dates',
-  NOW(),
-  NOW()
-);
+    // ✅ Execute each command separately or with multipleStatements enabled
+    await connection.query(`
+      ALTER DATABASE ${process.env.DB_NAME} CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
 
+    await connection.query(`
+      ALTER TABLE hiring_applications CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    `);
 
+    await connection.query(`
+      ALTER TABLE hiring_applications 
+      MODIFY message TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     `);
 
     return NextResponse.json({
       success: true,
-      message: "✅ new type done",
-      data: date
+      message: "✅ Database and table successfully converted to utf8mb4",
     });
   } catch (err) {
-    console.error("❌ Error initializing final_page_texts:", err);
+    console.error("❌ Error converting to utf8mb4:", err);
     return NextResponse.json({ success: false, error: String(err) });
   } finally {
     if (connection) await connection.end();
