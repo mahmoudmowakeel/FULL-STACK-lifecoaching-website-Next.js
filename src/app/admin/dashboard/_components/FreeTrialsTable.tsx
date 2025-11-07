@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import NormalButton from "../_UI/NormalButton";
 import { FreeTrial } from "../free-trials/page";
+import Image from "next/image";
 
 interface FreeTrialsTableProps {
   data: FreeTrial[];
@@ -72,6 +73,12 @@ export default function FreeTrialsTable({
                 onClick={downloadPDF}
               >
                 PDF
+                <Image
+                  src="/Images/file-down.svg"
+                  width={20}
+                  height={20}
+                  alt="pdf"
+                />
               </NormalButton>
             </th>
           </tr>

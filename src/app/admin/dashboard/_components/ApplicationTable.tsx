@@ -35,23 +35,58 @@ export default function ApplicationsTable({
   };
 
   const downloadPDF = () => {
-    const doc = new jsPDF();
-    const selectedData = data.filter((d) => selectedIds.includes(d.id));
-    const rows = selectedData.map((d) => [
-      d.id,
-      d.name,
-      d.phone,
-      d.email,
-      d.message,
-      d.created_at,
-    ]);
+    const doc = new jsPDF({ orientation: "landscape" });
+    const fontBase64 = localStorage.getItem("amiriFont");
 
-    autoTable(doc, {
-      head: [["#", "Name", "Phone", "Email", "Note", "Created At"]],
-      body: rows,
+    if (fontBase64) {
+      try {
+        doc.addFileToVFS("Amiri-Regular.ttf", fontBase64);
+        doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+        doc.setFont("Amiri");
+        console.log("Font applied to PDF");
+      } catch (error) {
+        console.error("Error applying font:", error);
+      }
+    } else {
+      console.warn("Font not loaded from localStorage");
+    }
+
+    doc.setFontSize(18);
+    doc.text("Applications Report", 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+
+    const selectedData = selectedIds.length
+      ? data.filter((d) => selectedIds.includes(d.id))
+      : data;
+
+    doc.text(`Total Records: ${selectedData.length}`, 14, 34);
+
+    const rows = selectedData.map((d, i) => {
+      const dateStr = d.created_at
+        ? new Date(d.created_at).toISOString().slice(0, 16).replace("T", " ")
+        : "";
+      return [i + 1, d.name, d.phone, d.email, d.message, dateStr];
     });
 
-    doc.save("applications.pdf");
+    autoTable(doc, {
+      startY: 40,
+      head: [["#", "Name", "Phone", "Email", "Note", "Created At"]],
+      body: rows,
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        font: "Amiri",
+        halign: "right",
+      },
+      headStyles: {
+        fillColor: [164, 211, 221],
+        textColor: [33, 78, 120],
+        font: "Amiri",
+      },
+    });
+
+    doc.save(`applications-${Date.now()}.pdf`);
   };
 
   return (
@@ -155,9 +190,7 @@ export default function ApplicationsTable({
                   {status === "pending" && (
                     <div dir="ltr" className="flex justify-center gap-2">
                       {children &&
-                        (Array.isArray(children)
-                          ? children[index]
-                          : children)}
+                        (Array.isArray(children) ? children[index] : children)}
                     </div>
                   )}
                 </td>
@@ -177,7 +210,9 @@ export default function ApplicationsTable({
             >
               ✕
             </button>
-            <h3 className="text-[#214E78] font-bold mb-3 text-sm">النص الكامل / Full Message</h3>
+            <h3 className="text-[#214E78] font-bold mb-3 text-sm">
+              النص الكامل / Full Message
+            </h3>
             <p className="text-[#214E78] text-md break-words whitespace-pre-wrap text-center">
               {openMessage}
             </p>

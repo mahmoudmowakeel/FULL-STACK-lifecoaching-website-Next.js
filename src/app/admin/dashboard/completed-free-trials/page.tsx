@@ -125,7 +125,22 @@ export default function CompletedFreeTrialsPage() {
 
   // Download PDF
   const downloadPDF = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "landscape" });
+    const fontBase64 = localStorage.getItem("amiriFont");
+
+    if (fontBase64) {
+      try {
+        doc.addFileToVFS("Amiri-Regular.ttf", fontBase64);
+        doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+        doc.setFont("Amiri");
+        console.log("Font applied to PDF");
+      } catch (error) {
+        console.error("Error applying font:", error);
+      }
+    } else {
+      console.warn("Font not loaded from localStorage");
+    }
+
     doc.setFontSize(18);
     doc.text("Completed Free Trials Report", 14, 20);
     doc.setFontSize(11);
@@ -149,17 +164,22 @@ export default function CompletedFreeTrialsPage() {
       startY: 46,
       head: [["#", "Name", "Phone", "Email", "Date & Time"]],
       body: tableData,
-      styles: { fontSize: 10, cellPadding: 3 },
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        font: "Amiri",
+        halign: "right",
+      },
       headStyles: {
         fillColor: [164, 211, 221],
         textColor: [33, 78, 120],
         fontStyle: "bold",
+        font: "Amiri",
       },
     });
 
     doc.save(`free-trials-completed-${Date.now()}.pdf`);
   };
-
   return (
     <div className="relative">
       <ContentContainer

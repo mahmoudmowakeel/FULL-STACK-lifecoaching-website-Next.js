@@ -81,13 +81,15 @@ export default function ReservationsTable({
                 bgColor="#214E78"
                 onClick={downloadPDF}
               >
-                PDF
+               <div className="px-2 justify-center flex items-center">
+                 PDF
                 <Image
                   src="/Images/file-down.svg"
                   width={20}
                   height={20}
                   alt="pdf"
                 />
+               </div>
               </NormalButton>
             </th>
           </tr>

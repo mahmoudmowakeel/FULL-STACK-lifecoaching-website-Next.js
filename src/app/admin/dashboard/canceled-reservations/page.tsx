@@ -140,65 +140,126 @@ export default function CanceledReservationsPage() {
     }
   };
 
-  // Download selected rows as PDF
-  const downloadPDF = () => {
-    const doc = new jsPDF({ orientation: "landscape" });
-    doc.setFontSize(18);
-    doc.text("Canceled Reservations Report", 14, 20);
-    doc.setFontSize(11);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
-
-    const selected = selectedIds.length
-      ? filteredReservations.filter((r) => selectedIds.includes(r.id))
-      : filteredReservations;
-
-    doc.text(`Total Records: ${selected.length}`, 14, 34);
-
-    const tableData = selected.map((r, i) => {
-      const dateStr = r.date_time
-        ? new Date(r.date_time).toISOString().slice(0, 16).replace("T", " ")
-        : "";
-      return [
-        i + 1,
-        r.name,
-        r.phone,
-        r.email,
-        dateStr,
-        r.type === "inPerson" ? "استماع ولقاء" : "استماع",
-        r.paymentMethod === "gateway"
-          ? "بوابة دفع"
-          : r.paymentMethod === "cash"
-          ? "نقدا"
-          : r.paymentMethod === "banktransfer"
-          ? "تحويل بنكي"
-          : "غير معروف",
-        r.invoice_number || "-",
-        r.invoice_pdf ? "Available" : "N/A",
-      ];
-    });
-
-    autoTable(doc, {
-      startY: 40,
-      head: [
-        [
-          "#",
-          "Name",
-          "Phone",
-          "Email",
-          "Date & Time",
-          "Type",
-          "Payment",
-          "Invoice #",
-          "Invoice",
-        ],
-      ],
-      body: tableData,
-      styles: { fontSize: 10, cellPadding: 3 },
-      headStyles: { fillColor: [164, 211, 221], textColor: [33, 78, 120] },
-    });
-
-    doc.save(`canceled-reservations-${Date.now()}.pdf`);
+// At the top of your component
+useEffect(() => {
+  // Load font once when component mounts
+  const loadFont = async () => {
+    try {
+      const response = await fetch("/fonts/Amiri-Regular.ttf");
+      console.log("Font response:", response);
+      
+      if (!response.ok) {
+        console.error("Failed to fetch font");
+        return;
+      }
+      
+      const fontBlob = await response.blob();
+      const reader = new FileReader();
+      
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result === "string") {
+          const base64 = result.split(",")[1];
+          localStorage.setItem("amiriFont", base64);
+          console.log("Font loaded and saved to localStorage");
+        }
+      };
+      
+      reader.onerror = () => {
+        console.error("Error reading font file");
+      };
+      
+      reader.readAsDataURL(fontBlob);
+    } catch (error) {
+      console.error("Error loading font:", error);
+    }
   };
+  loadFont();
+}, []);
+
+// Download PDF
+const downloadPDF = () => {
+  const doc = new jsPDF({ orientation: "landscape" });
+  const fontBase64 = localStorage.getItem("amiriFont");
+  
+  if (fontBase64) {
+    try {
+      doc.addFileToVFS("Amiri-Regular.ttf", fontBase64);
+      doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+      doc.setFont("Amiri");
+      console.log("Font applied to PDF");
+    } catch (error) {
+      console.error("Error applying font:", error);
+    }
+  } else {
+    console.warn("Font not loaded from localStorage");
+  }
+  
+  doc.setFontSize(18);
+  doc.text("Reservations Report", 14, 20);
+  doc.setFontSize(11);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28); // Fixed: use parentheses
+  
+  const selected = selectedIds.length
+    ? filteredReservations.filter((r) => selectedIds.includes(r.id))
+    : filteredReservations;
+  
+  doc.text(`Total Records: ${selected.length}`, 14, 34); // Fixed: use parentheses
+  
+  const tableData = selected.map((r, i) => {
+    const dateStr = r.date_time
+      ? new Date(r.date_time).toISOString().slice(0, 16).replace("T", " ")
+      : "";
+    return [
+      i + 1,
+      r.name,
+      r.phone,
+      r.email,
+      dateStr,
+      r.type === "inPerson" ? "استماع ولقاء" : "استماع",
+      r.paymentMethod === "gateway"
+        ? "بوابة دفع"
+        : r.paymentMethod === "cash"
+        ? "نقدا"
+        : r.paymentMethod === "banktransfer"
+        ? "تحويل بنكي"
+        : "غير معروف",
+      r.invoice_number || "-",
+      r.invoice_pdf ? "Available" : "N/A",
+    ];
+  });
+  
+  autoTable(doc, {
+    startY: 40,
+    head: [
+      [
+        "#",
+        "Name",
+        "Phone",
+        "Email",
+        "Date & Time",
+        "Type",
+        "Payment",
+        "Invoice #",
+        "Invoice",
+      ],
+    ],
+    body: tableData,
+    styles: { 
+      fontSize: 10, 
+      cellPadding: 3,
+      font: "Amiri", // Add font to table
+      halign: "right" // Right align for Arabic
+    },
+    headStyles: { 
+      fillColor: [164, 211, 221], 
+      textColor: [33, 78, 120],
+      font: "Amiri" // Add font to headers
+    },
+  });
+  
+  doc.save(`canceled-reservations-${Date.now()}.pdf`); // Fixed: use parentheses
+};
 
   return (
     <div className="relative">
