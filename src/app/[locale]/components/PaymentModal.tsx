@@ -62,8 +62,8 @@ export default function PaymentModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-2xl shadow-xl w-[95%] max-w-md relative">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 ">
+      <div className="bg-white p-6 rounded-2xl shadow-xl w-[95%] max-w-md relative max-h-[70vh] overflow-y-auto ">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
@@ -165,7 +165,7 @@ function CheckoutForm({
           </button>
         </>
       ) : (
-        <div className="py-6">
+        <div className="py-6 ">
           {status === "success" && (
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-3">
