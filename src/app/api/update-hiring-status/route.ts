@@ -28,10 +28,10 @@ export async function POST(req: Request) {
 
     // ✅ Connect to MySQL
     connection = await mysql.createConnection({
-       host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME
     });
 
     let query = "";
@@ -42,26 +42,25 @@ export async function POST(req: Request) {
       query = "DELETE FROM hiring_applications WHERE id = ?";
       values = [id];
     } else if (action === "update") {
-      // ✏️ Update record dynamically
       const setFields: string[] = [];
 
-      if (status) {
-        setFields.push("status = ?");
+      if (status !== undefined) {
+        setFields.push("`status` = ?");
         values.push(status);
       }
-      if (name) {
+      if (name !== undefined) {
         setFields.push("name = ?");
         values.push(name);
       }
-      if (phone) {
+      if (phone !== undefined) {
         setFields.push("phone = ?");
         values.push(phone);
       }
-      if (email) {
+      if (email !== undefined) {
         setFields.push("email = ?");
         values.push(email);
       }
-      if (date_time) {
+      if (date_time !== undefined) {
         setFields.push("date_time = ?");
         values.push(date_time);
       }
@@ -75,6 +74,8 @@ export async function POST(req: Request) {
 
       query = `UPDATE hiring_applications SET ${setFields.join(", ")} WHERE id = ?`;
       values.push(id);
+
+      console.log("🔍 Query:", query, values);
     } else {
       return NextResponse.json(
         { success: false, error: "Invalid action type" },
