@@ -1,6 +1,7 @@
 // src/app/api/send-meeting-emails/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { emailService } from '../../../lib/emailService';
+import { emailService, EmailAttachment } from '../../../lib/emailService';
+import jsPDF from 'jspdf';
 
 interface EmailRequest {
     customerName: string;
@@ -12,7 +13,14 @@ interface EmailRequest {
         meetLink?: string;
         eventLink?: string;
     };
-    type: string
+    type?:
+    | 'free_trial'
+    | 'reservation'
+    | 'edit'
+    | 'complete_reservation'
+    | 'cancel_reservation'
+    | 'apply';
+    pdfInvoice?: string; // Base64 PDF string
 }
 
 export interface FinalPageText {
@@ -36,44 +44,47 @@ interface GetTextsResponse {
 export async function POST(request: NextRequest) {
     try {
         const body: EmailRequest = await request.json();
-
         const {
             customerName,
             customerEmail,
             meetingDetails,
-            type = 'reservation'
+            type = 'reservation',
+            pdfInvoice,
         } = body;
 
         // Validate required fields
         if (!customerName || !customerEmail || !meetingDetails) {
             return NextResponse.json(
-                {
-                    success: false,
-                    message: 'Missing required fields for emails'
-                },
+                { success: false, message: 'Missing required fields for emails' },
                 { status: 400 }
             );
         }
+
+        // Fetch custom texts
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const response = await fetch(`${baseUrl}/api/get-final-page-texts`, {
-            cache: 'no-store',
-        });
+        const textsResponse = await fetch(`${baseUrl}/api/get-final-page-texts`, { cache: 'no-store' });
+        if (!textsResponse.ok) throw new Error(`Failed to fetch texts: ${textsResponse.statusText}`);
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch texts: ${response.statusText}`);
-        }
+        const data: GetTextsResponse = await textsResponse.json();
+        const customMessage = data.success && Array.isArray(data.data)
+            ? data.data.find(row => row.type === type)?.text_ar ?? ''
+            : '';
 
-        const data: GetTextsResponse = await response.json();
+        // ✅ FIX: Convert Base64 string to Buffer
+        const attachments: EmailAttachment[] | undefined = pdfInvoice
+            ? [
+                {
+                    filename: "invoice.pdf",
+                    content: Buffer.from(pdfInvoice.replace(/\s+/g, ''), 'base64'), // Convert to Buffer
+                    contentType: "application/pdf",
+                },
+            ]
+            : undefined;
 
-        let customMessage = '';
-        if (data.success && Array.isArray(data.data)) {
-            const found = data.data.find((row) => row.type === type);
-            customMessage = found?.text_ar ?? '';
-        }
-
-        const emailPromises = [];
+        const emailPromises: Promise<void>[] = [];
 
         // Send email to customer
+        console.log("Sending email with PDF attachment:", !!pdfInvoice);
         emailPromises.push(
             emailService.sendEmail({
                 to: customerEmail,
@@ -84,10 +95,11 @@ export async function POST(request: NextRequest) {
                     meetingDetails.meetLink,
                     customMessage
                 ),
+                attachments,
             })
         );
 
-        // Send email to admin (you)
+        // Send email to admin
         const adminEmail = process.env.EMAIL_MEET_USER;
         if (adminEmail) {
             emailPromises.push(
@@ -100,6 +112,7 @@ export async function POST(request: NextRequest) {
                         meetingDetails,
                         meetingDetails.meetLink
                     ),
+                    attachments, // optionally attach the same PDF to admin
                 })
             );
         }
@@ -119,13 +132,8 @@ export async function POST(request: NextRequest) {
     } catch (error: unknown) {
         console.error('Email sending error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-
         return NextResponse.json(
-            {
-                success: false,
-                message: 'Failed to send emails',
-                error: errorMessage,
-            },
+            { success: false, message: 'Failed to send emails', error: errorMessage },
             { status: 500 }
         );
     }

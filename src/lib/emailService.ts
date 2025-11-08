@@ -1,9 +1,18 @@
 import nodemailer from 'nodemailer';
 
+export interface EmailAttachment {
+  filename: string;
+  content: string | Buffer;         // Base64 string
+  contentType?: string;
+  disposition?: string;
+  encoding?: 'base64';     // specify encoding since content is Base64
+}
+
 export interface EmailData {
   to: string;
   subject: string;
   html: string;
+  attachments?: EmailAttachment[]; // ✅ allow attachments
 }
 
 export interface MeetingDetails {
@@ -38,7 +47,6 @@ class EmailService {
       },
     });
   }
-
   async sendEmail(emailData: EmailData): Promise<void> {
     try {
       await this.transporter.sendMail({
@@ -46,6 +54,7 @@ class EmailService {
         to: emailData.to,
         subject: emailData.subject,
         html: emailData.html,
+        attachments: emailData.attachments, // ✅ include attachments
       });
       console.log(`Email sent successfully to ${emailData.to}`);
     } catch (error: unknown) {

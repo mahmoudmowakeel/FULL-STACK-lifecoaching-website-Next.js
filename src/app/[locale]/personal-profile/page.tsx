@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AdminModal } from "@/app/admin/dashboard/_components/ModalAdmin";
 import DateTimePickerReserve from "../components/DateTimePicker_reserve";
 import { ReservationFormData } from "@/lib/types/freeTrials";
+import { convertTo12Hour } from "@/lib/timeFormat";
 
 interface UserInfo {
   name: string;
@@ -170,6 +171,16 @@ export default function ProfilePage() {
     }
     setIsLoading(false);
   }, [email, nameParam, phoneParam]);
+
+  // ✅ Handle edit button click for specific reservation
+  const handleEditClick = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+    setNewDateTime(new Date(reservation.date_time).toISOString().slice(0, 16));
+    // Check if this specific reservation was edited before
+    const wasEditedBefore = reservation.is_edited || false;
+    setEditBefore(wasEditedBefore);
+    setShowNoteModal(true);
+  };
 
   // ✅ Save changes (modal)
   const handleSave = async () => {
@@ -365,44 +376,31 @@ export default function ProfilePage() {
         <section className="w-full md:w-[80%] text-center mb-10">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold">{t("bookings")}</h2>
-            {currentBookings.length > 0 && (
-              <button
-                onClick={() => {
-                  setShowNoteModal(true);
-                  setSelectedReservation(currentBookings[0]);
-                  setNewDateTime(
-                    new Date(currentBookings[0].date_time)
-                      .toISOString()
-                      .slice(0, 16)
-                  );
-                }}
-                className="bg-[#214E78] text-white px-6 py-2 rounded-md hover:bg-[#1b3f60] transition text-sm font-semibold"
-              >
-                {t("edit")}
-              </button>
-            )}
           </div>
 
           {/* Table */}
           <div className="bg-[#A4D3DD]/90 rounded-lg py-3 px-3 font-semibold text-[#214E78] overflow-x-auto shadow-md">
-            <div className="hidden sm:grid sm:grid-cols-5 gap-2 text-xs md:text-sm font-bold mb-3">
+            <div className="hidden sm:grid sm:grid-cols-6 gap-2 text-xs md:text-sm font-bold mb-3">
               <span>{t("dateTime")}</span>
               <span>{t("type")}</span>
               <span>{t("paymentMethod")}</span>
               <span>{t("invoiceNumber")}</span>
               <span>{t("price")}</span>
+              <span>{t("edit")}</span>
             </div>
 
             {currentBookings.map((b) => (
               <div
                 key={b.id}
-                className="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-[#A4D3DD] py-2 px-2 rounded-lg text-xs md:text-sm shadow-sm"
+                className="grid grid-cols-1 sm:grid-cols-6 gap-2 bg-[#A4D3DD] py-2 px-2 rounded-lg text-xs md:text-sm shadow-sm mb-2"
               >
                 <span dir="ltr">
-                  {new Date(b.date_time)
-                    .toISOString()
-                    .slice(0, 16)
-                    .replace("T", " ")}
+                  {convertTo12Hour(
+                    new Date(b.date_time)
+                      .toISOString()
+                      .slice(0, 16)
+                      .replace("T", " ")
+                  )}
                 </span>
                 <span>{b.type === "inPerson" ? "استماع ولقاء" : "استماع"}</span>
                 <span>
@@ -416,6 +414,14 @@ export default function ProfilePage() {
                 <span>
                   {(Number(b.amount) / 100).toFixed(2)}{" "}
                   {locale == "ar" ? "درهم" : "AED"}
+                </span>
+                <span>
+                  <button
+                    onClick={() => handleEditClick(b)}
+                    className="bg-[#214E78] text-white px-4 py-1 rounded-md hover:bg-[#1b3f60] transition text-xs font-semibold"
+                  >
+                    {t("edit")}
+                  </button>
                 </span>
               </div>
             ))}
@@ -440,10 +446,12 @@ export default function ProfilePage() {
                 className="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-[#A4D3DD] py-2 px-2 rounded-lg text-xs md:text-sm shadow-sm"
               >
                 <span dir="ltr">
-                  {new Date(b.date_time)
-                    .toISOString()
-                    .slice(0, 16)
-                    .replace("T", " ")}
+                  {convertTo12Hour(
+                    new Date(b.date_time)
+                      .toISOString()
+                      .slice(0, 16)
+                      .replace("T", " ")
+                  )}
                 </span>
                 <span>{b.type === "inPerson" ? "استماع ولقاء" : "استماع"}</span>
                 <span>

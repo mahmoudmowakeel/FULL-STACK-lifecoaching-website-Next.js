@@ -146,6 +146,7 @@ export async function POST(req: Request) {
                 success: true,
                 message: "Reservation created successfully",
                 invoiceNumber,
+                invoice_pdf: Buffer.from(invoicePDF).toString("base64"), // ✅ safe
             },
             { status: 200 }
         );

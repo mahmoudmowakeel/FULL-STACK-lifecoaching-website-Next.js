@@ -211,7 +211,12 @@ export default function FreeTrialsPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleComplete = async (id: number) => {
+  const handleComplete = async (
+    id: number,
+    name: string,
+    email: string,
+    date_time: string
+  ) => {
     try {
       const res = await fetch("/api/update-free-trial", {
         method: "POST",
@@ -223,6 +228,21 @@ export default function FreeTrialsPage() {
         setFreeTrials((prev) => prev.filter((t) => t.id !== id));
         setFilteredTrials((prev) => prev.filter((t) => t.id !== id));
         setSelectedIds((prev) => prev.filter((x) => x !== id));
+      }
+      try {
+        await fetch("/api/send-general-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customerName: name,
+            customerEmail: email,
+            type: "complete_reservation",
+            date_time: date_time,
+          }),
+        });
+        console.log(`📩 email sent to ${email}`);
+      } catch (emailError) {
+        console.error(`❌ Failed to send  email:`, emailError);
       }
     } catch (error) {
       console.error("❌ Error updating status:", error);

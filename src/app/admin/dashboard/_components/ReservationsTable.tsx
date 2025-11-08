@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import NormalButton from "../_UI/NormalButton";
 import { Reservation } from "../completed-reservations/page";
 import Image from "next/image";
+import { convertTo12Hour } from "@/lib/timeFormat";
 
 interface ReservationsTableProps {
   data: Reservation[];
@@ -81,15 +82,15 @@ export default function ReservationsTable({
                 bgColor="#214E78"
                 onClick={downloadPDF}
               >
-               <div className="px-2 justify-center flex items-center">
-                 PDF
-                <Image
-                  src="/Images/file-down.svg"
-                  width={20}
-                  height={20}
-                  alt="pdf"
-                />
-               </div>
+                <div className="px-2 justify-center flex items-center">
+                  PDF
+                  <Image
+                    src="/Images/file-down.svg"
+                    width={20}
+                    height={20}
+                    alt="pdf"
+                  />
+                </div>
               </NormalButton>
             </th>
           </tr>
@@ -145,13 +146,13 @@ function ReservationRow({
   const [formData, setFormData] = useState<Reservation>(data);
   const [formatted, setFormatted] = useState("");
 
-  useEffect(() => {
-    if (formData.date_time) {
-      const date = new Date(formData.date_time);
-      setFormatted(date.toISOString().slice(0, 16).replace("T", " "));
-    }
-  }, [formData.date_time]);
+  const getFormattedDateTime = () => {
+    if (!formData.date_time) return "";
 
+    const date = new Date(formData.date_time);
+    const formatted = date.toISOString().slice(0, 16).replace("T", " ");
+    return convertTo12Hour(formatted);
+  };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
@@ -185,7 +186,7 @@ function ReservationRow({
       <td className="px-4 py-2">{formData.phone}</td>
       <td className="px-4 py-2">{formData.email}</td>
       <td className="px-4 py-2" dir="ltr">
-        {formatted}
+        {getFormattedDateTime()}
       </td>
       <td className="px-4 py-2">
         {data.type === "inPerson" ? "استماع ولقاء" : "استماع"}
@@ -221,7 +222,7 @@ function ReservationRow({
                   textColor="black"
                   onClick={handleCancelEdit}
                 >
-                  إلغاء <br /> Cancel
+                  تراجع <br /> Cancel
                 </NormalButton>
                 <NormalButton
                   bgColor="#214E78"

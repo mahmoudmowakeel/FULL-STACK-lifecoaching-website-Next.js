@@ -3,7 +3,8 @@ import mysql, { ResultSetHeader } from "mysql2/promise";
 
 // Define expected request body
 interface UpdateReservationBody {
-  email: string;
+  id?: number; // ✅ added
+  email?: string; // now optional if id is provided
   date_time?: string | null;
   status?: string;
   payment_bill?: string;
@@ -12,7 +13,7 @@ interface UpdateReservationBody {
   amount?: string;
   invoice_number?: string;
   invoice_pdf?: string;
-  is_edited?: boolean; // ✅ new field
+  is_edited?: boolean;
 }
 
 export async function POST(req: Request) {
@@ -21,6 +22,7 @@ export async function POST(req: Request) {
   try {
     const body: UpdateReservationBody = await req.json();
     const {
+      id,
       email,
       date_time,
       status,
@@ -30,25 +32,25 @@ export async function POST(req: Request) {
       amount,
       invoice_number,
       invoice_pdf,
-      is_edited, // ✅ added
+      is_edited,
     } = body;
 
-    if (!email) {
+    if (!email && !id) {
       return NextResponse.json(
-        { success: false, error: "Missing required field: email" },
+        { success: false, error: "Either email or id must be provided" },
         { status: 400 }
       );
     }
 
-    // ✅ Connect to MySQL
+    // Connect to MySQL
     connection = await mysql.createConnection({
-       host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
     });
 
-    // ✅ Build the dynamic SQL update
+    // Build dynamic SQL update
     const setFields: string[] = [];
     const values: (string | number | null | boolean)[] = [];
 
@@ -85,7 +87,6 @@ export async function POST(req: Request) {
       values.push(invoice_pdf);
     }
     if (typeof is_edited === "boolean") {
-      // ✅ Only update if the field is provided
       setFields.push("is_edited = ?");
       values.push(is_edited);
     }
@@ -97,14 +98,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // Add parameters for WHERE clause
-    values.push(email);
+    // Build WHERE clause dynamically
+    const whereConditions: string[] = ["status = 'pending'"];
+    if (id) {
+      whereConditions.push("id = ?");
+      values.push(id);
+    }
+    if (email) {
+      whereConditions.push("email = ?");
+      values.push(email);
+    }
 
-    // ✅ Only update if current status = 'pending'
     const query = `
       UPDATE reservations
       SET ${setFields.join(", ")}
-      WHERE email = ? AND status = 'pending';
+      WHERE ${whereConditions.join(" AND ")};
     `;
 
     const [result] = await connection.execute<ResultSetHeader>(query, values);

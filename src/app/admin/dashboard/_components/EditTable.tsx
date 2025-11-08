@@ -2,9 +2,9 @@
 import { useState } from "react";
 import NormalButton from "../_UI/NormalButton";
 import { FreeTrial } from "../free-trials/page";
+import { convertTo12Hour } from "@/lib/timeFormat";
 
 export default function EditTable({ children }: { children: React.ReactNode }) {
- 
   return (
     <div className="overflow-hidden rounded-2xl">
       <table className="min-w-full border-collapse text-[#214E78] text-center font-bold text-xs">
@@ -81,13 +81,20 @@ function TableContentRow({
     setIsEditing(false);
   };
 
-  const date = new Date(localData.date_time as string);
-  const formatted = `${date.getFullYear()}-${(date.getMonth() + 1)
-    .toString()
-    .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
-    .getHours()
-    .toString()
-    .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+  // const date = new Date(localData.date_time as string);
+  // const formatted = `${date.getFullYear()}-${(date.getMonth() + 1)
+  //   .toString()
+  //   .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
+  //   .getHours()
+  //   .toString()
+  //   .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+  const getFormattedDateTime = () => {
+    if (!localData.date_time) return "";
+
+    const date = new Date(localData.date_time);
+    const formatted = date.toISOString().slice(0, 16).replace("T", " ");
+    return convertTo12Hour(formatted);
+  };
 
   return (
     <tr className="bg-[#A4D3DD] h-fit">
@@ -134,7 +141,7 @@ function TableContentRow({
 
       {/* Date & Time (fixed text, not input) */}
       <td dir="ltr" className="px-4 py-2">
-        {formatted}
+        {getFormattedDateTime()}
       </td>
 
       {/* Actions */}
@@ -147,7 +154,7 @@ function TableContentRow({
                 textColor="black"
                 onClick={handleCancel}
               >
-                إلغاء <br /> Cancel
+                تراجع <br /> Cancel
               </NormalButton>
               <NormalButton
                 bgColor="#214E78"

@@ -3,13 +3,19 @@ import { useEffect, useState } from "react";
 import NormalButton from "../_UI/NormalButton";
 import { FreeTrial } from "../free-trials/page";
 import Image from "next/image";
+import { convertTo12Hour } from "@/lib/timeFormat";
 
 interface FreeTrialsTableProps {
   data: FreeTrial[];
   selectedIds?: number[];
   toggleRow?: (id: number) => void;
   toggleSelectAll?: () => void;
-  handleComplete?: (id: number) => void;
+  handleComplete?: (
+    id: number,
+    name: string,
+    email: string,
+    date_time: string
+  ) => void;
   downloadPDF: () => void;
   status?: "pending" | "completed";
   openModalForTrial?: (id: number, date: string) => void;
@@ -111,7 +117,12 @@ interface TableContentRowProps {
   index: number;
   selected?: boolean;
   toggleRow?: (id: number) => void;
-  handleComplete?: (id: number) => void;
+  handleComplete?: (
+    id: number,
+    name: string,
+    email: string,
+    date_time: string
+  ) => void;
   editable: boolean;
   showCompleteButton: boolean;
   openModalForTrial: (id: number, date: string) => void;
@@ -133,12 +144,19 @@ function TableContentRow({
   const [formData, setFormData] = useState<FreeTrial>(data);
   const [formatted, setFormatted] = useState("");
 
-  useEffect(() => {
-    if (formData.date_time) {
-      const date = new Date(formData.date_time);
-      setFormatted(date.toISOString().slice(0, 16).replace("T", " "));
-    }
-  }, [formData.date_time]);
+  // useEffect(() => {
+  //   if (formData.date_time) {
+  //     const date = new Date(formData.date_time);
+  //     setFormatted(date.toISOString().slice(0, 16).replace("T", " "));
+  //   }
+  // }, [formData.date_time]);
+  const getFormattedDateTime = () => {
+    if (!formData.date_time) return "";
+
+    const date = new Date(formData.date_time);
+    const formatted = date.toISOString().slice(0, 16).replace("T", " ");
+    return convertTo12Hour(formatted);
+  };
 
   return (
     <tr className="bg-[#A4D3DD] h-fit relative">
@@ -157,7 +175,8 @@ function TableContentRow({
       <td className="px-4 py-2">{formData.phone}</td>
       <td className="px-4 py-2">{formData.email}</td>
       <td className="px-4 py-2" dir="ltr">
-        {formatted}
+        {/* {formatted} */}
+        {getFormattedDateTime()}
       </td>
 
       <td className="px-4 py-2">
@@ -171,7 +190,7 @@ function TableContentRow({
                     textColor="black"
                     onClick={() => setIsEditing(false)}
                   >
-                    إلغاء <br /> Cancel
+                    تراجع <br /> Cancel
                   </NormalButton>
                   <NormalButton
                     bgColor="#214E78"
@@ -202,7 +221,14 @@ function TableContentRow({
                     <NormalButton
                       bgColor="#FFFFFF"
                       textColor="#214E78"
-                      onClick={() => handleComplete(data.id)}
+                      onClick={() =>
+                        handleComplete(
+                          data.id,
+                          data.name,
+                          data.email,
+                          data.date_time!
+                        )
+                      }
                     >
                       اتمام <br /> Complete
                     </NormalButton>

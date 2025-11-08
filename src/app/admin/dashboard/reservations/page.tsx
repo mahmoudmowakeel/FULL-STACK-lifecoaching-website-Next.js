@@ -371,6 +371,7 @@ export default function ReservationsPage() {
     try {
       // setIsSaving(true);
       const updatedData = {
+        id: editingReservation?.id, // ✅ Add id here
         email,
         status: "pending",
         date_time: formattedDate,

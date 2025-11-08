@@ -12,6 +12,7 @@ import {
   ApiResponse,
   ListeningOptions,
 } from "@/app/admin/dashboard/listen-meet/page";
+import { Reservation } from "@/app/admin/dashboard/reservations/page";
 
 type ElementType = {
   id: number;
@@ -232,6 +233,8 @@ export default function ReservationButton({ text }: { text: string }) {
       }
 
       // 3️⃣ Send email with meeting details
+      const reservationData: Reservation = await reservationResponse.json();
+      console.log("reservationData: " + reservationData);
       const emailResponse = await fetch("/api/send-meeting-emails", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -245,6 +248,7 @@ export default function ReservationButton({ text }: { text: string }) {
             meetLink: meetingData.hangoutLink,
             eventLink: meetingData.eventLink,
           },
+          pdfInvoice: reservationData.invoice_pdf, // ✅ attach PDF
         }),
       });
 
@@ -373,13 +377,13 @@ export default function ReservationButton({ text }: { text: string }) {
         setLoading(false);
         return; // stop execution
       }
-      if (res.status === 403) {
-        setOpen(false);
-        setNote(reservationT("another_reservation"));
-        setNotesOpen(true);
-        setLoading(false);
-        return; // stop execution
-      }
+      // if (res.status === 403) {
+      //   setOpen(false);
+      //   setNote(reservationT("another_reservation"));
+      //   setNotesOpen(true);
+      //   setLoading(false);
+      //   return; // stop execution
+      // }
       if (res.status === 409) {
         setOpen(false);
         setNote(notes.beforeAccept);

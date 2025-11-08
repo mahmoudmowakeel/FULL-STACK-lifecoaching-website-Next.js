@@ -96,7 +96,7 @@ export default function HomePage() {
   "
       >
         {/* (1) Background Image */}
-        <div className="w-full h-full min-h-[300px] relative">
+        <div className="w-full h-full min-h-[300px] md:min-h-[400px] relative">
           <div className="relative w-full h-full">
             <Image
               src="/Images/bg.jpg"

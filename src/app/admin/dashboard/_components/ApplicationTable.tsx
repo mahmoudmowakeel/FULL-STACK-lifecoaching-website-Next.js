@@ -5,6 +5,7 @@ import { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { HiringApplication } from "../applications/page";
+import { convertTo12Hour } from "@/lib/timeFormat";
 
 interface ApplicationsTableProps {
   data: HiringApplication[];
@@ -173,7 +174,16 @@ export default function ApplicationsTable({
                 <td>{app.name}</td>
                 <td>{app.phone}</td>
                 <td>{app.email}</td>
-                <td>{new Date(app.created_at).toLocaleString()}</td>
+                <td>
+                  {app.created_at
+                    ? convertTo12Hour(
+                        new Date(app.created_at)
+                          .toISOString()
+                          .slice(0, 16)
+                          .replace("T", " ")
+                      )
+                    : ""}
+                </td>
 
                 {/* ✅ Truncated message with popup on click */}
                 <td
