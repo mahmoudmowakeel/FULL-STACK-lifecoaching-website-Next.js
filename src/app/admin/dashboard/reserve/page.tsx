@@ -155,6 +155,7 @@ export default function ReservationButton() {
         const errMsg = errBody?.error ?? "Failed to create reservation";
         throw new Error(errMsg);
       }
+      const reservationData: Reservation = await reservationResponse.json();
 
       // reservation created successfully
       setMessage("تم حفظ الحجز بنجاح! جارٍ إنشاء الاجتماع...");
@@ -187,7 +188,6 @@ export default function ReservationButton() {
       }
 
       // 3) Send meeting emails (customer + admin)
-      const reservationData: Reservation = await reservationResponse.json();
       const emailResponse = await fetch("/api/send-meeting-emails", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
