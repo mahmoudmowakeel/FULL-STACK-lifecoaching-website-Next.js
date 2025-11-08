@@ -59,7 +59,7 @@ export default function CalendarReservationsPage() {
               className="px-6 py-1 rounded-3xl bg-white text-[#214E78] font-bold cursor-pointer"
               type="button"
             >
-              الغاء / Cancel
+              تراجع / Cancel
             </button>
           </div>
         </div>
