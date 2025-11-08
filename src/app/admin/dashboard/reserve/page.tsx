@@ -8,6 +8,7 @@ import DateTimePicker from "@/app/[locale]/components/DateTimePicker";
 import { ApiResponse, ListeningOptions } from "../listen-meet/page";
 import DateTimePickerReserve from "@/app/[locale]/components/DateTimePicker_reserve";
 import AdminDateTimePickerReserve from "../_components/ReservePicketForAdmin";
+import { Reservation } from "../reservations/page";
 
 export default function ReservationButton() {
   const [step, setStep] = useState<number>(1);
@@ -186,6 +187,7 @@ export default function ReservationButton() {
       }
 
       // 3) Send meeting emails (customer + admin)
+      const reservationData: Reservation = await reservationResponse.json();
       const emailResponse = await fetch("/api/send-meeting-emails", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -199,6 +201,7 @@ export default function ReservationButton() {
             meetLink: meetingData.hangoutLink,
             eventLink: meetingData.eventLink,
           },
+          pdfInvoice: reservationData.invoice_pdf, // ✅ attach PDF
         }),
       });
 

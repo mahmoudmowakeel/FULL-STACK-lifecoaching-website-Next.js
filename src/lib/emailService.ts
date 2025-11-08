@@ -2,10 +2,10 @@ import nodemailer from 'nodemailer';
 
 export interface EmailAttachment {
   filename: string;
-  content: string | Buffer;         // Base64 string
+  content: string | Buffer;
   contentType?: string;
   disposition?: string;
-  encoding?: 'base64';     // specify encoding since content is Base64
+  encoding?: string; // Add this back but make it optional string
 }
 
 export interface EmailData {
@@ -13,6 +13,7 @@ export interface EmailData {
   subject: string;
   html: string;
   attachments?: EmailAttachment[]; // ✅ allow attachments
+
 }
 
 export interface MeetingDetails {
@@ -21,6 +22,7 @@ export interface MeetingDetails {
   summary: string;
   meetLink?: string;
   eventLink?: string;
+
 }
 
 class EmailService {
@@ -48,6 +50,7 @@ class EmailService {
     });
   }
   async sendEmail(emailData: EmailData): Promise<void> {
+    console.log("emailAttaach: " + JSON.stringify(emailData.attachments))
     try {
       await this.transporter.sendMail({
         from: `<${process.env.EMAIL_MEET_USER}>`,
@@ -69,7 +72,9 @@ class EmailService {
     customerName: string,
     meetingDetails: MeetingDetails,
     meetLink?: string,
-    customMessage?: string
+    customMessage?: string,
+    content?: string,
+    pdfDownloadLink?: string // Change from finalPdf to pdfDownloadLink
 
   ): string {
     const meetingDate = new Date(meetingDetails.startTime).toLocaleDateString('en-US', {
@@ -135,6 +140,21 @@ class EmailService {
             <p><strong>Meeting Link:</strong> The Google Meet link will be available in your calendar event. Please check your Google Calendar for the meeting link.</p>
             <a href="https://calendar.google.com" class="meeting-link">Open Google Calendar</a>
             `}
+          ${pdfDownloadLink ? `
+<div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #214E78;">
+    <h3 style="color: #214E78; margin-bottom: 10px;">📄 الفاتورة</h3>
+    <p style="margin-bottom: 15px;">يمكنك تحميل الفاتورة من الرابط التالي:</p>
+    <a href="${pdfDownloadLink}" 
+       style="display: inline-block; background: #214E78; color: white; padding: 12px 24px; 
+              text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;"
+       target="_blank">
+        📥 تحميل الفاتورة (PDF)
+    </a>
+    <p style="margin-top: 10px; font-size: 12px; color: #666;">
+        الرابط صالح للتحميل لمدة 24 ساعة
+    </p>
+</div>
+` : ''}
 
         </div>
         </div>
@@ -148,7 +168,10 @@ class EmailService {
     customerName: string,
     customerEmail: string,
     meetingDetails: MeetingDetails,
-    meetLink?: string
+    meetLink?: string,
+    content?: string,
+    pdfDownloadLink?: string // Change from finalPdf to pdfDownloadLink
+
   ): string {
     const meetingDate = new Date(meetingDetails.startTime).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -162,6 +185,7 @@ class EmailService {
       minute: '2-digit'
     });
     const duration = "ساعه ونصف";
+
 
     return `
       <!DOCTYPE html>
@@ -218,7 +242,21 @@ class EmailService {
             <p><strong>Meeting Link:</strong> Available in your Google Calendar</p>
             <a href="https://calendar.google.com" class="meeting-link">Open Google Calendar</a>
             `}
-
+            ${pdfDownloadLink ? `
+<div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; border-left: 4px solid #214E78;">
+    <h3 style="color: #214E78; margin-bottom: 10px;">📄 الفاتورة</h3>
+    <p style="margin-bottom: 15px;">يمكنك تحميل الفاتورة من الرابط التالي:</p>
+    <a href="${pdfDownloadLink}" 
+       style="display: inline-block; background: #214E78; color: white; padding: 12px 24px; 
+              text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;"
+       target="_blank">
+        📥 تحميل الفاتورة (PDF)
+    </a>
+    <p style="margin-top: 10px; font-size: 12px; color: #666;">
+        الرابط صالح للتحميل لمدة 24 ساعة
+    </p>
+</div>
+` : ''}
 
             <p><strong تم اضافة الحجز الي التقويم الخاص بك تلقائيا. </strong></p>
           </div>

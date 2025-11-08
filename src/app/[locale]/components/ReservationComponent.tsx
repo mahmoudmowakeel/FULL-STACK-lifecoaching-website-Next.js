@@ -234,7 +234,10 @@ export default function ReservationButton({ text }: { text: string }) {
 
       // 3️⃣ Send email with meeting details
       const reservationData: Reservation = await reservationResponse.json();
-      console.log("reservationData: " + reservationData);
+      console.log("reservationData: " + JSON.stringify(reservationData));
+      console.log(
+        "reservationData Invoice: " + JSON.stringify(reservationData.invoice_pdf)
+      );
       const emailResponse = await fetch("/api/send-meeting-emails", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

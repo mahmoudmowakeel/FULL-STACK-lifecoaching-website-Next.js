@@ -1,7 +1,8 @@
 // src/app/api/send-meeting-emails/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { emailService, EmailAttachment } from '../../../lib/emailService';
-import jsPDF from 'jspdf';
+import { emailService } from '../../../lib/emailService';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 interface EmailRequest {
     customerName: string;
@@ -23,7 +24,7 @@ interface EmailRequest {
     pdfInvoice?: string; // Base64 PDF string
 }
 
-export interface FinalPageText {
+interface FinalPageText {
     id: number;
     type:
     | 'free_trial'
@@ -44,18 +45,12 @@ interface GetTextsResponse {
 export async function POST(request: NextRequest) {
     try {
         const body: EmailRequest = await request.json();
-        const {
-            customerName,
-            customerEmail,
-            meetingDetails,
-            type = 'reservation',
-            pdfInvoice,
-        } = body;
+        const { customerName, customerEmail, meetingDetails, type = 'reservation', pdfInvoice } = body;
 
         // Validate required fields
         if (!customerName || !customerEmail || !meetingDetails) {
             return NextResponse.json(
-                { success: false, message: 'Missing required fields for emails' },
+                { success: false, message: 'Missing required fields' },
                 { status: 400 }
             );
         }
@@ -63,6 +58,7 @@ export async function POST(request: NextRequest) {
         // Fetch custom texts
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
         const textsResponse = await fetch(`${baseUrl}/api/get-final-page-texts`, { cache: 'no-store' });
+
         if (!textsResponse.ok) throw new Error(`Failed to fetch texts: ${textsResponse.statusText}`);
 
         const data: GetTextsResponse = await textsResponse.json();
@@ -70,21 +66,50 @@ export async function POST(request: NextRequest) {
             ? data.data.find(row => row.type === type)?.text_ar ?? ''
             : '';
 
-        // ✅ FIX: Convert Base64 string to Buffer
-        const attachments: EmailAttachment[] | undefined = pdfInvoice
-            ? [
-                {
-                    filename: "invoice.pdf",
-                    content: Buffer.from(pdfInvoice.replace(/\s+/g, ''), 'base64'), // Convert to Buffer
-                    contentType: "application/pdf",
-                },
-            ]
-            : undefined;
+        // Handle PDF - Store it and create download link
+        let pdfDownloadLink = '';
+        let attachments = [];
 
+        if (pdfInvoice) {
+            try {
+                const cleanBase64 = pdfInvoice.replace(/\s/g, '');
+                const pdfBuffer = Buffer.from(cleanBase64, 'base64');
+
+                // Create temp directory if it doesn't exist
+                const tempDir = join(process.cwd(), 'temp');
+                if (!existsSync(tempDir)) {
+                    mkdirSync(tempDir, { recursive: true });
+                }
+
+                // Generate unique file name
+                const fileName = `invoice_${Date.now()}.pdf`;
+                const filePath = join(tempDir, fileName);
+
+                // Save PDF file
+                writeFileSync(filePath, pdfBuffer);
+
+                // Create secure download link
+                pdfDownloadLink = `${baseUrl}/api/download-invoice?file=${fileName}`;
+
+                console.log('PDF saved successfully:', pdfDownloadLink);
+
+                // Also attach PDF to email as proper attachment
+                attachments = [{
+                    filename: 'invoice.pdf',
+                    content: cleanBase64,
+                    contentType: 'application/pdf',
+                    encoding: 'base64'
+                }];
+
+            } catch (err) {
+                console.error('Failed to process PDF:', err);
+            }
+        }
+
+        // Prepare email promises
         const emailPromises: Promise<void>[] = [];
 
         // Send email to customer
-        console.log("Sending email with PDF attachment:", !!pdfInvoice);
         emailPromises.push(
             emailService.sendEmail({
                 to: customerEmail,
@@ -93,9 +118,11 @@ export async function POST(request: NextRequest) {
                     customerName,
                     meetingDetails,
                     meetingDetails.meetLink,
-                    customMessage
+                    customMessage,
+                    '', // content
+                    pdfDownloadLink // Pass the download link instead of base64
                 ),
-                attachments,
+                // attachments,
             })
         );
 
@@ -110,14 +137,15 @@ export async function POST(request: NextRequest) {
                         customerName,
                         customerEmail,
                         meetingDetails,
-                        meetingDetails.meetLink
+                        meetingDetails.meetLink,
+                        '', // content
+                        pdfDownloadLink // Pass the download link instead of base64
                     ),
-                    attachments, // optionally attach the same PDF to admin
+                    // attachments,
                 })
             );
         }
 
-        // Wait for all emails to be sent
         await Promise.all(emailPromises);
 
         return NextResponse.json({
@@ -127,10 +155,11 @@ export async function POST(request: NextRequest) {
                 customer: customerEmail,
                 admin: adminEmail,
             },
+            pdfLink: pdfDownloadLink || 'No PDF attached'
         });
 
     } catch (error: unknown) {
-        console.error('Email sending error:', error);
+        console.error('Email sending error:', error instanceof Error ? error.stack : error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         return NextResponse.json(
             { success: false, message: 'Failed to send emails', error: errorMessage },
