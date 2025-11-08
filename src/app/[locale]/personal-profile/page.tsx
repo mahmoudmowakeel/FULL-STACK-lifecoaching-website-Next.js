@@ -16,6 +16,13 @@ interface UserInfo {
   phone: string;
   email: string;
 }
+type ElementType = {
+  id: number;
+  type: string;
+  text_ar: string;
+  text_en: string;
+  created_at: string;
+};
 
 interface Reservation {
   id: string;
@@ -68,7 +75,13 @@ export default function ProfilePage() {
 
   const [selectedReservation, setSelectedReservation] =
     useState<Reservation | null>(null);
+
   const [newDateTime, setNewDateTime] = useState<string>("");
+  const [notes, setNotes] = useState<{
+    edit: string;
+  }>({
+    edit: "",
+  });
 
   // ✅ Get email from localStorage if not in params
   useEffect(() => {
@@ -80,6 +93,28 @@ export default function ProfilePage() {
       router.push("/ar/home");
     }
   }, [router]);
+
+  async function getNotes() {
+    try {
+      const response = await fetch("/api/get-additional-page-texts");
+      const data = await response.json();
+
+      if (!data.success) return false;
+      const edit = data.data.find(
+        (el: ElementType) => el.type == "edit-reserve"
+      );
+
+      setNotes({
+        edit: locale == "ar" ? edit?.text_ar : edit?.text_en,
+      });
+    } catch (error) {
+      return false;
+    }
+  }
+
+  useEffect(() => {
+    getNotes();
+  }, []);
 
   // ✅ Fetch reservations
   const fetchReservations = async () => {
@@ -258,7 +293,7 @@ export default function ProfilePage() {
       >
         <div className="text-center space-y-4">
           <p className="font-bold text-[#214E78] leading-relaxed text-sm">
-            {editBefore ? t("editDisabled") : t("editWarning")}
+            {editBefore ? t("editDisabled") : notes.edit}
           </p>
         </div>
       </NotesModal>

@@ -444,13 +444,13 @@ export default function FreeTrialsPage() {
               className="mt-4 w-[50%] text-[#214E78] bg-white p-1 rounded-md cursor-pointer"
               onClick={handleModalDone}
             >
-              اتمام <br /> Done
+              حفظ <br /> Save
             </button>
             <button
               className="mt-4 w-[50%] bg-[#214E78] text-white p-1 rounded-md cursor-pointer"
               onClick={() => setIsModalOpen(false)}
             >
-              الغاء <br /> cancel
+              تراجع <br /> cancel
             </button>
           </div>
         </AdminModal>

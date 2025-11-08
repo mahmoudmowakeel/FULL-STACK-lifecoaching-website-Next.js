@@ -102,6 +102,9 @@ body {
 .custom-day-picker.rdp1 .rdp-head {
   margin-bottom: 0.1rem !important;
 }
+.rdp-today:not(.rdp-outside) {
+    color: #214e78 !important;
+}
 
 .custom-day-picker.rdp1 .rdp-day_button {
   width: 10px !important;
@@ -109,10 +112,15 @@ body {
   font-size: 15px;
   margin: 1.5px auto;
 }
+.custom-day-picker.rdp1 .rdp-day_button:disabled {
+ background-color: #7777776d !important;
+ color: rgba(255, 255, 255, 0.616) !important;
+ padding: 3px;
+
+}
 .custom-day-picker.rdp1 .rdp-day {
   width: 10px !important;
   height: 10px !important;
-
 }
 
 .custom-day-picker.rdp1 .rdp-weekday {
@@ -131,6 +139,8 @@ body {
   max-width: none;
 }
 
+
+
 .custom-day-picker.rdp1 .rdp-month_caption,
 .rdp-nav {
   padding: 2px 3px;
@@ -141,6 +151,11 @@ body {
   width: 100%;
 }
 
+.rdp-day_button:disabled {
+  cursor: revert;
+  background-color: #214e78 !important;
+}
+
 .rdp-button_next,
 .rdp-button_previous {
   width: fit-content !important;
@@ -148,10 +163,9 @@ body {
 }
 
 .rdp-chevron {
-    display: inline-block;
-    fill: #214e78;
+  display: inline-block;
+  fill: #214e78;
 }
-
 
 .custom-day-picker .rdp-day_selected {
   background-color: #782121 !important;

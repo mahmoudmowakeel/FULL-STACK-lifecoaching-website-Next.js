@@ -16,17 +16,16 @@ export async function POST() {
 
     // ✅ Execute each command separately or with multipleStatements enabled
     await connection.query(`
-      ALTER DATABASE ${process.env.DB_NAME} CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    INSERT INTO additional_page_texts (type, text_ar, text_en, created_at, updated_at)
+VALUES (
+  'edit-reserve',
+ "تعديل الحجز سوف يكون لمره واحده فقط لذلك يرجى التأكد من انك سوف تتمكن من الحضور قبل اجراء التعديل والا فلن تتمكن من الاستفاده من هذا الحجز مره اخرى. ",
+  "The booking can only be modified once, so please make sure that you will be able to attend before making the modification, otherwise you will not be able to benefit from this booking again.",
+  NOW(),
+  NOW()
+);
     `);
 
-    await connection.query(`
-      ALTER TABLE hiring_applications CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    `);
-
-    await connection.query(`
-      ALTER TABLE hiring_applications 
-      MODIFY message TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    `);
 
     return NextResponse.json({
       success: true,

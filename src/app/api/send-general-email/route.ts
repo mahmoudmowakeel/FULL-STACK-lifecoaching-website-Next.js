@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         <h2>مرحباً ${customerName}</h2>
         <p>${messageText.replace(`(اسم العميل)`, customerName).replace("تاريخ و يوم", formatted).replace("ووقت", "")}</p>
         <br/>
-        <p style="font-size: 12px; color: #777;">شكرًا لاستخدامك خدماتنا ✨</p>
+        <p style="font-size: 12px; color: #777;">شكرا لاختيارك لنا</p>
       </div>
     `;
 

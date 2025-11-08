@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         emailPromises.push(
             emailService.sendEmail({
                 to: customerEmail,
-                subject: `تم تأكيد حجزك بنجاح!`,
+                subject: `تم تأكيد حجزك بنجاح`,
                 html: emailService.generateCustomerEmailTemplate(
                     customerName,
                     meetingDetails,

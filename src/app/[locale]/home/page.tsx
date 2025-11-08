@@ -96,14 +96,16 @@ export default function HomePage() {
   "
       >
         {/* (1) Background Image */}
-        <div className="relative w-full h-full">
-          <Image
-            src="/Images/bg.jpg"
-            alt="Background"
-            fill
-            className="object-cover"
-            priority
-          />
+        <div className="w-full h-full min-h-[300px] relative">
+          <div className="relative w-full h-full">
+            <Image
+              src="/Images/bg.jpg"
+              alt="Background"
+              fill
+              className="object-fill"
+              priority
+            />
+          </div>
         </div>
 
         {/* (2) Welcome Text */}
